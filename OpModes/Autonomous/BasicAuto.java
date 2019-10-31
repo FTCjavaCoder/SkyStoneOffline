@@ -6,29 +6,16 @@ import TestOpModesOffline.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import Skystone_14999.DriveMotion.DriveMethods;
 import Skystone_14999.OpModes.BasicOpMode;
-
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 @Autonomous(name="BasicAuto", group="Autonomous")
 @Disabled
@@ -46,6 +33,8 @@ public class BasicAuto extends BasicOpMode {
     public int frStart;
     public int blStart;
     public int brStart;
+
+    public double extraFwd = 0;
 
     //Define all double variables
     public double start = 0;//timer variable to use for setting waits in the code
@@ -264,16 +253,67 @@ public class BasicAuto extends BasicOpMode {
         //grab skystone with gripper
         haveSkyStone = true;
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-14, cons.pHM.get("drivePowerLimit").value, "Back 10 inches",this);
-        // needs to be longer previously -10"
     }
 
-    public void moveSkyStone() {
+    public void moveAcrossBridge() {
 
         drv.driveGeneral(DriveMethods.moveDirection.Rotate,-90, cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees CCW",this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,5, cons.pHM.get("drivePowerLimit").value, "Forward 50 inches",this);
-        //(50") add variable for additional forward distances depending on position of stone grabbed
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,50 + extraFwd, cons.pHM.get("drivePowerLimit").value, "Forward 50 inches",this);
+        //(5") add variable for additional forward distances depending on position of stone grabbed
+
+    }
+
+    public void brideCrossOutside() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Back 4 inches",this);
+        //previously -14"
+
+        moveAcrossBridge();
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,-8, cons.pHM.get("drivePowerLimit").value, "Left 8 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,4, cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+
+        //Place stone with gripper
+        haveSkyStone = false;
+    }
+
+    public void parkOutside() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,8, cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-25, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
+
+    }
+
+    public void brideCrossInside() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-30, cons.pHM.get("drivePowerLimit").value, "Back 32 inches",this);
+        //previously -14"
+
+        moveAcrossBridge();
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,16, cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,4, cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+
+        //Place stone with gripper
+        haveSkyStone = false;
+
+    }
+
+    public void parkInside() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,-16, cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-25, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
+
     }
 
     public void findSkyStone() {
@@ -288,9 +328,13 @@ public class BasicAuto extends BasicOpMode {
                 telemetry.addLine("SkyStone Found");
                 telemetry.update();
 
+                if(looped == 1){
+
+                    extraFwd = 8;
+                }
+
                 grabSkyStone();
 
-                moveSkyStone();
                 looped = 100;
             }
             else {
@@ -307,9 +351,10 @@ public class BasicAuto extends BasicOpMode {
             telemetry.addLine("Third Stone");
             telemetry.update();
 
+            extraFwd = 16;
+
             grabSkyStone();
 
-            moveSkyStone();
         }
 
     }
@@ -344,6 +389,26 @@ public class BasicAuto extends BasicOpMode {
 
         drv.driveGeneral(DriveMethods.moveDirection.RightLeft, -4, cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
 
+        haveBlueFoundation = false;
     }
 
+    public void awayFromFoundationInside() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -16, cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate, 90, cons.pHM.get("rotatePowerLimit").value, "Rotate 90 Degrees", this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 25, cons.pHM.get("drivePowerLimit").value, "Forward 25 inches to park", this);
+
+    }
+
+    public void awayFromFoundationOutside() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 8, cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate, 90, cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees", this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 25, cons.pHM.get("drivePowerLimit").value, "Forward 25 inches to park", this);
+
+    }
 }
