@@ -4,9 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
-import Skystone_14999.DriveMotion.DriveMethods;
 
 @Autonomous(name="SkyStone Auto", group="Autonomous")
 
@@ -37,7 +34,7 @@ public class SkyStoneAuto extends BasicAuto {
 
         findSkyStone();
 
-        brideCrossOutside();
+        bridgeCrossInside();
 
         moveAcrossBridge();
 

@@ -35,6 +35,7 @@ public class BasicAuto extends BasicOpMode {
     public int brStart;
 
     public double extraFwd = 0;
+    public double foundationPosChange = 26;
     public double sideColor = 1;// + for Blue, - for Red
 
     //Define all double variables
@@ -45,33 +46,33 @@ public class BasicAuto extends BasicOpMode {
 
     public ElapsedTime runtime = new ElapsedTime(); //create a counter for elapsed time
 
-    public double testDistFwd = 24;
-    public double testAngleClock = 90;
-    public double testDistRight = 24;
-
-    public double sampleForward1 = 4;
-    public double sampleRotate1;
-    public double sampleForward2;
-    public double markerRotate1;
-    public double markerForward1;
-
-    public double dtc1Rotate;
-    public double dtc2Right;
-    public double dtc3Forward;
-
-    public double ctd1Back;
-    public double ctd2Rotate;
-    public double ctd3Forward;
-    public double ctd4Rotate;
-    public double ctd5Forward;
-    public double btc1Back; // -60
-
-    public double escapeFwd;
-    public double escapeSideWays;
-    public double parkRotate1;
-    public double parkForward1;
-
-    public String mineralGold = "Unknown";
+//    public double testDistFwd = 24;
+//    public double testAngleClock = 90;
+//    public double testDistRight = 24;
+//
+//    public double sampleForward1 = 4;
+//    public double sampleRotate1;
+//    public double sampleForward2;
+//    public double markerRotate1;
+//    public double markerForward1;
+//
+//    public double dtc1Rotate;
+//    public double dtc2Right;
+//    public double dtc3Forward;
+//
+//    public double ctd1Back;
+//    public double ctd2Rotate;
+//    public double ctd3Forward;
+//    public double ctd4Rotate;
+//    public double ctd5Forward;
+//    public double btc1Back; // -60
+//
+//    public double escapeFwd;
+//    public double escapeSideWays;
+//    public double parkRotate1;
+//    public double parkForward1;
+//
+//    public String mineralGold = "Unknown";
 
     /**
      * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
@@ -236,7 +237,7 @@ public class BasicAuto extends BasicOpMode {
 
         return skystone;
     }
-    // made for blue side only || sign multiplier for red/blue to be added
+
     public void fwdToStone() {
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,22, cons.pHM.get("drivePowerLimit").value, "Forward 22 inches",this);
@@ -244,7 +245,7 @@ public class BasicAuto extends BasicOpMode {
 
     public void nextStone() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,(8 * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 8 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,8, cons.pHM.get("drivePowerLimit").value, "Right 8 inches",this);
     }
 
     public void grabSkyStone() {
@@ -253,6 +254,7 @@ public class BasicAuto extends BasicOpMode {
 
         //grab skystone with gripper
         haveSkyStone = true;
+//        Billy.stoneServo.setPosition(0.4);//0.4 is arbitrary
 
     }
 
@@ -260,60 +262,62 @@ public class BasicAuto extends BasicOpMode {
 
         drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees CCW",this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,50 + extraFwd, cons.pHM.get("drivePowerLimit").value, "Forward 50 inches",this);
-        //(5") add variable for additional forward distances depending on position of stone grabbed
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,46 + extraFwd, cons.pHM.get("drivePowerLimit").value, "Forward 50 inches",this);
 
     }
 
     public void placeStoneOnFoundation() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,4, cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,(8 - (foundationPosChange/13)), cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+
+        //move jack to be above Foundation
+//        DeltaH = 5;
+//        drv.moveJack(5, cons.pHM.get("jackPowerLimit").value,"Jack Up 5 Inches",this);
 
         //Place stone with gripper
         haveSkyStone = false;
+//        Billy.stoneServo.setPosition(0.8);//0.8 is arbitrary
     }
 
-    public void brideCrossOutside() {
+    public void bridgeCrossInside() {
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Back 4 inches",this);
         //previously -14"
 
         moveAcrossBridge();
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,(-8 * sideColor), cons.pHM.get("drivePowerLimit").value, "Left 8 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((-8 + foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value, "Left 8 inches",this);
 
         placeStoneOnFoundation();
     }
 
-    public void parkOutside() {
+    public void parkInside() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-(8 - (foundationPosChange/13)), cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
 
-
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,(8 * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((-(-8 + foundationPosChange)) * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-25, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
 
     }
 
-    public void brideCrossInside() {
+    public void bridgeCrossOutside() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-30, cons.pHM.get("drivePowerLimit").value, "Back 32 inches",this);
-        //previously -14"
-
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-28, cons.pHM.get("drivePowerLimit").value, "Back 32 inches",this);
+        // was -30
         moveAcrossBridge();
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,(16 * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((15 + foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
 
         placeStoneOnFoundation();
 
     }
 
-    public void parkInside() {
+    public void parkOutside() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-(8 - (foundationPosChange/13)), cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,(-16 * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,(-(16 + foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-25, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
 
@@ -377,7 +381,7 @@ public class BasicAuto extends BasicOpMode {
 
     public void pullFoundation() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -26, cons.pHM.get("drivePowerLimit").value, "Backward 26 inches with Foundation", this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-26, cons.pHM.get("drivePowerLimit").value, "Backward 26 inches with Foundation", this);
 
         // release foundation from gripper
         if (sideColor == 1) {
@@ -413,25 +417,28 @@ public class BasicAuto extends BasicOpMode {
         if (sideColor == -1) {
             haveRedFoundation = false;
         }
-    }
 
-    public void awayFromFoundationInside() {
-
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -16, cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
-
-        drv.driveGeneral(DriveMethods.moveDirection.Rotate, (90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 Degrees", this);
-
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 25, cons.pHM.get("drivePowerLimit").value, "Forward 25 inches to park", this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (4 * sideColor), cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
 
     }
 
     public void awayFromFoundationOutside() {
 
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -16, cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate, (90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 Degrees", this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 21, cons.pHM.get("drivePowerLimit").value, "Forward 25 inches to park", this);
+
+    }
+
+    public void awayFromFoundationInside() {
+
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 8, cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
 
         drv.driveGeneral(DriveMethods.moveDirection.Rotate, (90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees", this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 25, cons.pHM.get("drivePowerLimit").value, "Forward 25 inches to park", this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 21, cons.pHM.get("drivePowerLimit").value, "Forward 25 inches to park", this);
 
     }
 }
