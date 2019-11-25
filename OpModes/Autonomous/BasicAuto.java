@@ -35,8 +35,11 @@ public class BasicAuto extends BasicOpMode {
     public int brStart;
 
     public double extraFwd = 0;
-    public double foundationPosChange = 26;
-    public double sideColor = 1;// + for Blue, - for Red
+    public double foundationPosChange = 0;// 26 for unmoved Foundation, 0 for moved Foundation
+    public double insideOutside = 0;// 0 for Inside, 24 for Outside
+    public double foundationInOut = 26;// 0 for Inside, 26 for Outside
+    public double foundationPush = 8;
+    public double sideColor = 1;// + for Blue, - for Red, KEEP BLUE
 
     //Define all double variables
     public double start = 0;//timer variable to use for setting waits in the code
@@ -241,83 +244,92 @@ public class BasicAuto extends BasicOpMode {
     public void fwdToStone() {
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,22, cons.pHM.get("drivePowerLimit").value, "Forward 22 inches",this);
+
     }
 
     public void nextStone() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,8, cons.pHM.get("drivePowerLimit").value, "Right 8 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,8,cons.pHM.get("drivePowerLimit").value / 2, "Right 8 inches",this);
+
+//        angleUnWrap();
+//
+//        drv.driveGeneral(DriveMethods.moveDirection.Rotate,( (0 - robotHeading) * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate to 0 degrees CCW",this);
+
     }
 
     public void grabSkyStone() {
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 12, cons.pHM.get("drivePowerLimit").value, "Forward 8 inches",this);
-        // needs to be longer previously 8""
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 8, cons.pHM.get("drivePowerLimit").value, "Forward 8 inches",this);
+        // needs to be longer previously 12""
 
         //grab skystone with gripper
         haveSkyStone = true;
-//        Billy.stoneServo.setPosition(0.4);//0.4 is arbitrary
 
     }
 
     public void moveAcrossBridge() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees CCW",this);
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees CW",this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,46 + extraFwd, cons.pHM.get("drivePowerLimit").value, "Forward 50 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-46 - extraFwd, cons.pHM.get("drivePowerLimit").value, "Backward 50 inches",this);
 
     }
 
     public void placeStoneOnFoundation() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,(8 - (foundationPosChange/13)), cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+        //move jack to be above Foundation IS 3
 
-        //move jack to be above Foundation
-//        DeltaH = 5;
-//        drv.moveJack(5, cons.pHM.get("jackPowerLimit").value,"Jack Up 5 Inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,(8 - (foundationPosChange/13)), cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
 
         //Place stone with gripper
         haveSkyStone = false;
-//        Billy.stoneServo.setPosition(0.8);//0.8 is arbitrary
+
     }
 
-    public void bridgeCrossInside() {
+    public void bridgeCrossSkyStone() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Back 4 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,(-4 - insideOutside), cons.pHM.get("drivePowerLimit").value, "Back 4 inches",this);
         //previously -14"
 
         moveAcrossBridge();
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((-8 + foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value, "Left 8 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((-insideOutside - foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value / 2, "Left 8 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-180 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 180 degrees CCW",this);
 
         placeStoneOnFoundation();
     }
 
-    public void parkInside() {
+    public void grabAndRotateFoundation() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-(8 - (foundationPosChange/13)), cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+        // grab foundation with servos
+        haveBlueFoundation = true;
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((-(-8 + foundationPosChange)) * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
-
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-25, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
-
-    }
-
-    public void bridgeCrossOutside() {
-
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-28, cons.pHM.get("drivePowerLimit").value, "Back 32 inches",this);
-        // was -30
-        moveAcrossBridge();
-
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((15 + foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
-
-        placeStoneOnFoundation();
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-50 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 180 degrees CCW",this);
 
     }
+    
+    public void straightToCorner() {
 
-    public void parkOutside() {
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,25, cons.pHM.get("drivePowerLimit").value, "Forward 30 inches",this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-(8 - (foundationPosChange/13)), cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
+        if(sideColor == 1) {
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,(-(16 + foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 16 inches",this);
+            haveBlueFoundation = false;
+        }
+        else if(sideColor == -1) {
+
+            haveRedFoundation = false;
+        }
+    }
+
+    public void parkSkyStone() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-(8 - (foundationPosChange/13)), cons.pHM.get("drivePowerLimit").value, "Backward  inches",this);
+
+        // move jack down
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((-(-4 + insideOutside + foundationPosChange)) * sideColor), cons.pHM.get("drivePowerLimit").value / 2, "Right 16 inches",this);
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-25, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
 
@@ -368,77 +380,77 @@ public class BasicAuto extends BasicOpMode {
 
     public void grabFoundation() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 30, cons.pHM.get("drivePowerLimit").value, "Forward 30 inches to Foundation", this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -32, cons.pHM.get("drivePowerLimit").value, "Backward 32 inches to Foundation", this);
 
-        // grab foundation with gripper
-        if (sideColor == 1) {
+        // grab foundation with servos
+        if(sideColor == 1) {
+
             haveBlueFoundation = true;
         }
-        if (sideColor == -1) {
+        else if(sideColor == -1) {
+
             haveRedFoundation = true;
         }
+
     }
 
     public void pullFoundation() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-26, cons.pHM.get("drivePowerLimit").value, "Backward 26 inches with Foundation", this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 30, cons.pHM.get("drivePowerLimit").value, "Forward 30 inches with Foundation", this);
 
         // release foundation from gripper
-        if (sideColor == 1) {
+        if(sideColor == 1) {
+
             haveBlueFoundation = false;
         }
-        if (sideColor == -1) {
+        else if(sideColor == -1) {
+
             haveRedFoundation = false;
         }
+
     }
 
     public void aroundFoundation() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (26 * sideColor), cons.pHM.get("drivePowerLimit").value, "Right 26 inches around Foundation", this);
+//        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 2, cons.pHM.get("drivePowerLimit").value, "Forward 2 inches away from Foundation", this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 18, cons.pHM.get("drivePowerLimit").value, "Forward 18 inches around Foundation", this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (-26 * sideColor), cons.pHM.get("drivePowerLimit").value / 2, "Left 26 inches around Foundation", this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -18, cons.pHM.get("drivePowerLimit").value, "Backwards 18 inches around Foundation", this);
 
     }
 
     public void pushFoundation() {
         // touching foundation to push it
-        if (sideColor == 1) {
+        if(sideColor == 1) {
+
             haveBlueFoundation = true;
         }
-        if (sideColor == -1) {
+        else if(sideColor == -1) {
+
             haveRedFoundation = true;
         }
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (-4 * sideColor), cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (foundationPush * sideColor), cons.pHM.get("drivePowerLimit").value / 2, "Right 8 inches pushing Foundation", this);
 
-        if (sideColor == 1) {
+        if(sideColor == 1) {
+
             haveBlueFoundation = false;
         }
-        if (sideColor == -1) {
+        else if(sideColor == -1) {
+
             haveRedFoundation = false;
         }
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (4 * sideColor), cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (-foundationPush * sideColor), cons.pHM.get("drivePowerLimit").value / 2, "Left 8 inches away from Foundation", this);
 
     }
 
-    public void awayFromFoundationOutside() {
+    public void awayFromFoundation() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -16, cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, (foundationInOut), cons.pHM.get("drivePowerLimit").value, "Back 6 inches towards center of Bridge", this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.Rotate, (90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 Degrees", this);
-
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 21, cons.pHM.get("drivePowerLimit").value, "Forward 25 inches to park", this);
-
-    }
-
-    public void awayFromFoundationInside() {
-
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 8, cons.pHM.get("drivePowerLimit").value, "Left 4 inches pushing Foundation", this);
-
-        drv.driveGeneral(DriveMethods.moveDirection.Rotate, (90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees", this);
-
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 21, cons.pHM.get("drivePowerLimit").value, "Forward 25 inches to park", this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, -16 * sideColor, cons.pHM.get("drivePowerLimit").value / 2, "Left 16 inches to park", this);
 
     }
 }

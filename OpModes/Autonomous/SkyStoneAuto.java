@@ -34,7 +34,7 @@ public class SkyStoneAuto extends BasicAuto {
 
         findSkyStone();
 
-        bridgeCrossInside();
+        bridgeCrossSkyStone();
 
         moveAcrossBridge();
 
