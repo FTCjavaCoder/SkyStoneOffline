@@ -295,23 +295,32 @@ public class BasicAuto extends BasicOpMode {
 
         drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((-insideOutside - foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value / 2, "Left 8 inches",this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-180 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 180 degrees CCW",this);
+//        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-180 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 180 degrees CCW",this);
 
-        placeStoneOnFoundation();
+//        placeStoneOnFoundation();
     }
 
     public void grabAndRotateFoundation() {
 
-        // grab foundation with servos
-        haveBlueFoundation = true;
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Backward 4 inches",this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-50 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 180 degrees CCW",this);
+        // grab foundation with servos
+        if(sideColor == 1) {
+
+            haveBlueFoundation = true;
+        }
+        else if(sideColor == -1) {
+
+            haveRedFoundation = true;
+        }
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-48 * sideColor), cons.pHM.get("drivePowerLimit").value, "Rotate 48 degrees CCW",this);
 
     }
-    
+
     public void straightToCorner() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,25, cons.pHM.get("drivePowerLimit").value, "Forward 30 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-25, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
 
         if(sideColor == 1) {
 
@@ -321,6 +330,28 @@ public class BasicAuto extends BasicOpMode {
 
             haveRedFoundation = false;
         }
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,8, cons.pHM.get("drivePowerLimit").value, "Back 8 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(180 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 180 degrees CW",this);
+
+        placeStoneOnFoundation();
+    }
+
+    public void backSkyStoneAndFoundation() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-2, cons.pHM.get("drivePowerLimit").value, "Backwards 5 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(63 * sideColor), cons.pHM.get("drivePowerLimit").value, "Rotate 63 degrees CW",this);
+
+    }
+    // get SkyStone first then do move foundation then place block
+    public void parkSkyStoneF() {
+
+        // move jack down
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-40, cons.pHM.get("drivePowerLimit").value, "Back 35 inches",this);
+
     }
 
     public void parkSkyStone() {
