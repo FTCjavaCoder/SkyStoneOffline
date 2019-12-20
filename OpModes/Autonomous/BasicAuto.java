@@ -269,9 +269,9 @@ public class BasicAuto extends BasicOpMode {
 
     public void moveAcrossBridge() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees CW",this);
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees CCW",this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-46 - extraFwd, cons.pHM.get("drivePowerLimit").value, "Backward 50 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,46 + extraFwd, cons.pHM.get("drivePowerLimit").value, "Forward 50 inches",this);
 
     }
 
@@ -293,7 +293,7 @@ public class BasicAuto extends BasicOpMode {
 
         moveAcrossBridge();
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((-insideOutside - foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value / 2, "Left 8 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((insideOutside + foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value / 2, "Right 8 inches",this);
 
 //        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-180 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 180 degrees CCW",this);
 
@@ -302,7 +302,7 @@ public class BasicAuto extends BasicOpMode {
 
     public void grabAndRotateFoundation() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Backward 4 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,6, cons.pHM.get("drivePowerLimit").value, "Backward 4 inches",this);
 
         // grab foundation with servos
         if(sideColor == 1) {
@@ -320,7 +320,10 @@ public class BasicAuto extends BasicOpMode {
 
     public void straightToCorner() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-25, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,20, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
+
+        //Place stone with gripper
+        haveSkyStone = false;
 
         if(sideColor == 1) {
 
@@ -331,26 +334,25 @@ public class BasicAuto extends BasicOpMode {
             haveRedFoundation = false;
         }
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,8, cons.pHM.get("drivePowerLimit").value, "Back 8 inches",this);
-
-        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(180 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 180 degrees CW",this);
-
-        placeStoneOnFoundation();
     }
 
     public void backSkyStoneAndFoundation() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-2, cons.pHM.get("drivePowerLimit").value, "Backwards 5 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-15, cons.pHM.get("drivePowerLimit").value, "Backwards 15 inches",this);//was -20
 
-        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(63 * sideColor), cons.pHM.get("drivePowerLimit").value, "Rotate 63 degrees CW",this);
+        //Stow gripper
 
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate, 48, cons.pHM.get("rotatePowerLimit").value, "Rotate 45 degrees CW", this);
     }
+
     // get SkyStone first then do move foundation then place block
     public void parkSkyStoneF() {
 
-        // move jack down
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((-insideOutside - foundationPosChange) * sideColor), cons.pHM.get("drivePowerLimit").value / 2, "Sideways 0-50ish inches",this);
 
-        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-40, cons.pHM.get("drivePowerLimit").value, "Back 35 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-13, cons.pHM.get("drivePowerLimit").value, "Backward 13 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-11, cons.pHM.get("drivePowerLimit").value, "Backward 11 inches",this);
 
     }
 
@@ -363,6 +365,97 @@ public class BasicAuto extends BasicOpMode {
         drv.driveGeneral(DriveMethods.moveDirection.RightLeft,((-(-4 + insideOutside + foundationPosChange)) * sideColor), cons.pHM.get("drivePowerLimit").value / 2, "Right 16 inches",this);
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-25, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
+
+    }
+
+    public void crossDropStonePark() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Back 4 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees CCW",this);
+
+        angleUnWrap();// think about commenting
+
+//        telemetry.addData("robotHeading: (%.2f)", robotHeading);
+
+//        if(sideColor == 1) {
+//
+//            drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-90 - robotHeading), cons.pHM.get("rotatePowerLimit").value, "Rotate to 90 degrees CCW",this);
+//
+//        }
+
+//        drv.driveGeneral(DriveMethods.moveDirection.Rotate,( (-90 * sideColor) - robotHeading), cons.pHM.get("rotatePowerLimit").value, "Rotate to 90 degrees CCW",this);
+
+        //pressAToContinue();
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,cons.pHM.get("dropStoneForward").value + extraFwd, cons.pHM.get("drivePowerLimit").value, "Forward 35+ inches",this);//was 48
+
+        //Drop stone with gripper
+        haveSkyStone = false;
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-6, cons.pHM.get("drivePowerLimit").value, "Back 6 inches",this);//was 4
+
+    }
+
+    public void crossDropStoneFor2() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Back 4 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees CCW",this);
+
+        angleUnWrap();// think about commenting
+
+//        telemetry.addData("robotHeading: (%.2f)", robotHeading);
+
+//        if(sideColor == 1) {
+//
+//            drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-90 - robotHeading), cons.pHM.get("rotatePowerLimit").value, "Rotate to 90 degrees CCW",this);
+//
+//        }
+
+//        drv.driveGeneral(DriveMethods.moveDirection.Rotate,( (-90 * sideColor) - robotHeading), cons.pHM.get("rotatePowerLimit").value, "Rotate to 90 degrees CCW",this);
+
+        //pressAToContinue();
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 35 + extraFwd, cons.pHM.get("drivePowerLimit").value, "Forward 35+ inches",this);//was 48
+
+        //Drop stone with gripper
+        haveSkyStone = false;
+
+    }
+
+    public void getSecondStone() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -35 - extraFwd - 24, cons.pHM.get("drivePowerLimit").value,"Backward to second stone",this);//was 48
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(90 * sideColor), cons.pHM.get("rotatePowerLimit").value,"Rotate 90 degrees CW",this);
+
+        grabSkyStone();
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-8, cons.pHM.get("drivePowerLimit").value, "Back 4 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-90 * sideColor), cons.pHM.get("rotatePowerLimit").value, "Rotate 90 degrees CCW",this);
+
+//        angleUnWrap();// think about commenting
+//
+//        telemetry.addData("robotHeading: (%.2f)", robotHeading);
+//
+//        if(sideColor == 1) {
+//
+//            drv.driveGeneral(DriveMethods.moveDirection.Rotate,(-90 - robotHeading), cons.pHM.get("rotatePowerLimit").value, "Rotate to 90 degrees CCW",this);
+//
+//        }
+//
+//        drv.driveGeneral(DriveMethods.moveDirection.Rotate,( (-90 * sideColor) - robotHeading), cons.pHM.get("rotatePowerLimit").value, "Rotate to 90 degrees CCW",this);
+
+        //pressAToContinue();
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,35 + extraFwd + 24, cons.pHM.get("drivePowerLimit").value, "Forward with second stone",this);//was 48
+
+        //Drop stone with gripper
+        haveSkyStone = false;
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-6, cons.pHM.get("drivePowerLimit").value, "Back 6 inches",this);//was 4
 
     }
 

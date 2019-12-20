@@ -96,6 +96,142 @@ public class DriveMethods{
 
     }
 
+//    public void driveGeneralPower(moveDirection moveType, double distanceInch, double powerLimit, String step, BasicAuto om) {
+//        int countDistance = 0;
+//        int[] driveDirection = new int[4];
+//        int[] startPos = new int[4];
+//        boolean motorsDone = false;
+//        double[] error = new double[4];
+//        double[] prePower = new double[4];
+//        double[] setPower = new double[4];
+//        double powerGain = powerLimit / (4 * om.cons.ROBOT_INCH_TO_MOTOR_DEG * om.cons.DEGREES_TO_COUNTS);// 4 is inches from target when robot will start slowing down
+//
+//        switch(moveType) {
+//
+//            case FwdBack :
+//                countDistance = (int) Math.round(distanceInch * om.cons.ROBOT_INCH_TO_MOTOR_DEG * om.cons.DEGREES_TO_COUNTS);
+//
+//                driveDirection[0] = -1;// FL
+//                driveDirection[1] = +1;// FR
+//                driveDirection[2] = +1;// BR
+//                driveDirection[3] = -1;// BL
+//                break;
+//
+//            case RightLeft :
+//                countDistance = (int) Math.round((distanceInch * om.cons.adjustedRight) * om.cons.ROBOT_INCH_TO_MOTOR_DEG * om.cons.DEGREES_TO_COUNTS);
+//
+//                driveDirection[0] = -1;// FL
+//                driveDirection[1] = -1;// FR
+//                driveDirection[2] = +1;// BR
+//                driveDirection[3] = +1;// BL
+//                break;
+//
+//            case Rotate :
+//                countDistance = (int) Math.round((distanceInch * om.cons.adjustedRotate) * om.cons.ROBOT_DEG_TO_WHEEL_INCH * om.cons.ROBOT_INCH_TO_MOTOR_DEG * om.cons.DEGREES_TO_COUNTS);
+//
+//                driveDirection[0] = -1;// FL
+//                driveDirection[1] = -1;// FR
+//                driveDirection[2] = -1;// BR
+//                driveDirection[3] = -1;// BL
+//                break;
+//            default:
+//                countDistance = (int) 0;
+//
+//                driveDirection[0] = 0;// FL
+//                driveDirection[1] = 0;// FR
+//                driveDirection[2] = 0;// BR
+//                driveDirection[3] = 0;// BL
+//        }
+//
+//        startPos = motorStartPos(om);
+//
+//        for (int i=0; i<4; i++) {
+//
+//            targetPos[i] = startPos[i] + (driveDirection[i] * countDistance);
+//        }
+//
+//        error[0] = targetPos[0] - om.Billy.frontLeft.getCurrentPosition();
+//        error[1] = targetPos[1] - om.Billy.frontRight.getCurrentPosition();
+//        error[2] = targetPos[2] - om.Billy.backRight.getCurrentPosition();
+//        error[3] = targetPos[3] - om.Billy.backLeft.getCurrentPosition();
+//
+////            prePower[0] = Math.abs(error[0]) * powerGain;
+////            prePower[1] = Math.abs(error[1]) * powerGain;
+////            prePower[2] = Math.abs(error[2]) * powerGain;
+////            prePower[3] = Math.abs(error[3]) * powerGain;
+////        prePower[0] = Range.clip(Math.abs(error[0]) * powerGain, powerMin, powerLimit);
+////        prePower[1] = Range.clip(Math.abs(error[1]) * powerGain, powerMin, powerLimit);
+////        prePower[2] = Range.clip(Math.abs(error[2]) * powerGain, powerMin, powerLimit);
+////        prePower[3] = Range.clip(Math.abs(error[3]) * powerGain, powerMin, powerLimit);
+//
+//        for (int i=0; i<4; i++) {
+//
+//            setPower[i] = Range.clip(Math.abs(error[i]) * powerGain, om.cons.pHM.get("drivePowerMinimum").value, powerLimit) * Math.signum(error[i]);
+//        }
+//
+//        om.runtime.reset();
+//        setMotorPowerArray(setPower, om);
+//
+//        while(!motorsDone && om.opModeIsActive()) {
+//
+//            error[0] = targetPos[0] - om.Billy.frontLeft.getCurrentPosition();
+//            error[1] = targetPos[1] - om.Billy.frontRight.getCurrentPosition();
+//            error[2] = targetPos[2] - om.Billy.backRight.getCurrentPosition();
+//            error[3] = targetPos[3] - om.Billy.backLeft.getCurrentPosition();
+//
+////            prePower[0] = Math.abs(error[0]) * powerGain;
+////            prePower[1] = Math.abs(error[1]) * powerGain;
+////            prePower[2] = Math.abs(error[2]) * powerGain;
+////            prePower[3] = Math.abs(error[3]) * powerGain;
+////            prePower[0] = Range.clip(Math.abs(error[0]) * powerGain, powerMin, powerLimit);
+////            prePower[1] = Range.clip(Math.abs(error[1]) * powerGain, powerMin, powerLimit);
+////            prePower[2] = Range.clip(Math.abs(error[2]) * powerGain, powerMin, powerLimit);
+////            prePower[3] = Range.clip(Math.abs(error[3]) * powerGain, powerMin, powerLimit);
+//
+//            for (int i=0; i<4; i++) {
+//
+//                setPower[i] = Range.clip(Math.abs(error[i]) * powerGain, om.cons.pHM.get("drivePowerMinimum").value, powerLimit) * Math.signum(error[i]);
+//            }
+//
+//            setMotorPowerArray(setPower, om);
+//
+//            om.telemetry.addData("Driving: ", step);
+//            om.telemetry.addData("Motor Commands: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
+//                    targetPos[0], targetPos[1],targetPos[2],targetPos[3]);
+//            om.telemetry.addData("Motor Counts: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
+//                    om.Billy.frontLeft.getCurrentPosition(), om.Billy.frontRight.getCurrentPosition(),
+//                    om.Billy.backRight.getCurrentPosition(), om.Billy.backLeft.getCurrentPosition());
+//            om.telemetry.update();
+//
+//            motorsDone = targetPosTolerence(om);
+//
+//            om.angleUnWrap();
+//            om.updateIMU();
+//            om.idle();
+//        }
+//        setMotorPower(0, om);
+//
+//        om.telemetry.addData("Driving: ", step);
+//        om.telemetry.addData("Motor Commands: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
+//                targetPos[0], targetPos[1],targetPos[2],targetPos[3]);
+//        om.telemetry.addData("Motor Counts: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
+//                om.Billy.frontLeft.getCurrentPosition(), om.Billy.frontRight.getCurrentPosition(),
+//                om.Billy.backRight.getCurrentPosition(), om.Billy.backLeft.getCurrentPosition());
+//
+////        om.Billy.frontLeft.setTargetPosition(om.Billy.frontLeft.getCurrentPosition());
+////        om.Billy.frontRight.setTargetPosition(om.Billy.frontRight.getCurrentPosition());
+////        om.Billy.backRight.setTargetPosition(om.Billy.backRight.getCurrentPosition());
+////        om.Billy.backLeft.setTargetPosition(om.Billy.backLeft.getCurrentPosition());
+////
+////        om.Billy.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+////        om.Billy.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+////        om.Billy.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+////        om.Billy.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//
+//
+//
+//    }
+
     public void moveJack(double jackPowerLimit, String step, BasicOpMode om) {
         int countDistance = (int) (om.cons.NUMBER_OF_JACK_STAGES * (om.cons.W0 - ( (Math.sqrt(Math.pow(om.cons.W0, 2) - Math.pow(om.DeltaH + om.cons.H0, 2)) / om.cons.MOTOR_DEG_TO_LEAD) * om.cons.DEGREES_TO_COUNTS) ) );
         int startPos;
@@ -141,6 +277,15 @@ public class DriveMethods{
         om.Billy.frontRight.setPower(power);
         om.Billy.backRight.setPower(power);
         om.Billy.backLeft.setPower(power);
+
+    }
+
+    public void setMotorPowerArray(double[] power, BasicOpMode om) {
+
+        om.Billy.frontLeft.setPower(power[0]);
+        om.Billy.frontRight.setPower(power[1]);
+        om.Billy.backRight.setPower(power[2]);
+        om.Billy.backLeft.setPower(power[3]);
 
     }
 
