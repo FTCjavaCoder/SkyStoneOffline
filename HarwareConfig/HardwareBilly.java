@@ -9,7 +9,6 @@ package Skystone_14999.HarwareConfig;
 import TestOpModesOffline.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import TestOpModesOffline.Servo;
-import TestOpModesOffline.ColorSensor;
 import TestOpModesOffline.BNO055IMU;
 import TestOpModesOffline.JustLoggingAccelerationIntegrator;
 
@@ -17,8 +16,6 @@ import TestOpModesOffline.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-
-import TestOpModesOffline.DcMotor;
 
 /*
 * REVISION HISTORY
@@ -35,9 +32,12 @@ public class HardwareBilly
     public DcMotor  backLeft         = null;
     public DcMotor  backRight        = null;
     public DcMotor  jackLeadScrew     = null;
-//    public DcMotor  slideExtend = null;
+    public DcMotor  gripper     = null;
+
+    //    public DcMotor  slideExtend = null;
 //    public DcMotor  slideRotate = null;
-   public Servo    servoStoneGrab  = null;
+    public Servo servoBlueStoneGrab = null;
+    public Servo servoRedStoneGrab = null;
 //    public Servo servoPrototype = null;
 //    public CRServo    servoSweeper   = null;
 //    public ColorSensor    colorSensorSampling   = null;
@@ -77,9 +77,13 @@ public class HardwareBilly
             backLeft = new DcMotor();
             backRight = new DcMotor();
             jackLeadScrew = new DcMotor();
+            gripper = new DcMotor();
+
 //    public DcMotor  slideExtend = null;
 //    public DcMotor  slideRotate = null;
-            servoStoneGrab = new Servo();
+            servoBlueStoneGrab = new Servo();
+            servoRedStoneGrab = new Servo();
+
 //    public Servo servoPrototype = null;
 //    public CRServo    servoSweeper   = null;
 //    public ColorSensor    colorSensorSampling   = null;
@@ -101,7 +105,7 @@ public class HardwareBilly
 //        mineralCollector = hwMap.get(DcMotor.class, "motor_collect");
 
         // Define and initialize ALL installed servos.
-        servoStoneGrab = hwMap.get(Servo.class, "StoneGrab_servo");
+        servoBlueStoneGrab = hwMap.get(Servo.class, "StoneGrab_servo");
 //        servoPrototype = hwMap.get(Servo.class, "marker_servo");
 //        servoSweeper = hwMap.get(CRServo.class, "sweeper_servo");
 //        mineralDumperR = hwMap.get(Servo.class, "mineral_servo_right");

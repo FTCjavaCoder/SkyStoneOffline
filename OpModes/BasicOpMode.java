@@ -6,6 +6,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
+import CoachCode.CoachFunctions.OpModeParamFunctions;
 import Skystone_14999.HarwareConfig.HardwareBilly;
 import Skystone_14999.Parameters.Constants;
 import TestOpModesOffline.Telemetry;
@@ -16,13 +17,28 @@ public class BasicOpMode extends LinearOpMode {
     public Constants cons = new Constants();// call using prm.(constant DRIVE_POWER_LIMIT etc.)
 
     public Telemetry telemetry = new Telemetry();
-
-    public boolean testMode = false;
+//    public boolean opModeIsRunning = true;
     public boolean activeOpMode = false;
+    public boolean testMode = false;
+
+        public boolean robotSeeStone = false;
+    //DEFINE VARIABLES FOR READING HASHMAPS
+    public boolean loadFile = true;
+    public String fileName = "AndroidHashMapFile.txt";
+    public String fileNameEdited = "AndroidHashMapFileEdited.txt";
+
     public boolean haveBlueFoundation = false;
     public boolean haveRedFoundation = false;
-    public boolean haveSkyStone = false;
+    public boolean haveBlueSkyStone1 = false;
+    public boolean haveRedSkyStone1 = false;
+    public boolean haveBlueSkyStone2 = false;
+    public boolean haveRedSkyStone2 = false;
 
+//    public double colorDir = 1; // 1 for blue and -1 for red on all L/R and rotate moves
+//    public double bridgeDist = 0; //0 for Inner and 24 for OUTER
+//    public double foundDist = -10; //18 for NotMoved and -10 for MOVED
+
+//    public OpModeParamFunctions ompf = new OpModeParamFunctions();
 
     public double priorAngle = 0;
     public double robotHeading = 0;

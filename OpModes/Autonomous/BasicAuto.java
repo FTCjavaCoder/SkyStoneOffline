@@ -41,6 +41,8 @@ public class BasicAuto extends BasicOpMode {
     public double foundationPush = 8;
     public double sideColor = 1;// + for Blue, - for Red, KEEP BLUE
 
+    public int stoneSelect = 0;//KS added 12/20/19 as variable to set in initialization to location stones
+
     //Define all double variables
     public double start = 0;//timer variable to use for setting waits in the code
     public float hsvValues[] = {0F, 0F, 0F};
@@ -249,7 +251,8 @@ public class BasicAuto extends BasicOpMode {
 
     public void nextStone() {
 
-        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,8,cons.pHM.get("drivePowerLimit").value / 2, "Right 8 inches",this);
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,8*sideColor,cons.pHM.get("drivePowerLimit").value / 2, "Right 8 inches",this);
+        //KS: 12/20/19 Needed sideColor to change R/L
 
 //        angleUnWrap();
 //
@@ -261,9 +264,29 @@ public class BasicAuto extends BasicOpMode {
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 8, cons.pHM.get("drivePowerLimit").value, "Forward 8 inches",this);
         // needs to be longer previously 12""
-
+        if(sideColor == 1) {Billy.servoBlueStoneGrab.setPosition(1);}
+        else if(sideColor == -1) {Billy.servoRedStoneGrab.setPosition(1);}
+        angleUnWrap();
+        updateIMU();
         //grab skystone with gripper
-        haveSkyStone = true;
+        if(sideColor == 1) {haveBlueSkyStone1 = true;}
+        else if(sideColor == -1) {haveRedSkyStone1 = true;}
+
+    }
+
+    //KS: added method below 12/20/19 - needed means to identify 2nd stone as grabbed
+    //Added 2nd method but could use 1 method with indicator
+    public void grabSkyStone2() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 8, cons.pHM.get("drivePowerLimit").value, "Forward 8 inches",this);
+        // needs to be longer previously 12""
+        if(sideColor == 1) {Billy.servoBlueStoneGrab.setPosition(1);}
+        else if(sideColor == -1) {Billy.servoRedStoneGrab.setPosition(1);}
+        angleUnWrap();
+        updateIMU();
+        //grab skystone with gripper
+        if(sideColor == 1) {haveBlueSkyStone2 = true;}
+        else if(sideColor == -1) {haveRedSkyStone2 = true;}
 
     }
 
@@ -282,8 +305,8 @@ public class BasicAuto extends BasicOpMode {
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,(8 - (foundationPosChange/13)), cons.pHM.get("drivePowerLimit").value, "Forward 4 inches",this);
 
         //Place stone with gripper
-        haveSkyStone = false;
-
+        if(sideColor == 1) {haveBlueSkyStone1 = false;}
+        else if(sideColor == -1) {haveRedSkyStone1 = false;}
     }
 
     public void bridgeCrossSkyStone() {
@@ -323,8 +346,8 @@ public class BasicAuto extends BasicOpMode {
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,20, cons.pHM.get("drivePowerLimit").value, "Back 25 inches",this);
 
         //Place stone with gripper
-        haveSkyStone = false;
-
+        if(sideColor == 1) {haveBlueSkyStone1 = false;}
+        else if(sideColor == -1) {haveRedSkyStone1 = false;}
         if(sideColor == 1) {
 
             haveBlueFoundation = false;
@@ -391,7 +414,8 @@ public class BasicAuto extends BasicOpMode {
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,cons.pHM.get("dropStoneForward").value + extraFwd, cons.pHM.get("drivePowerLimit").value, "Forward 35+ inches",this);//was 48
 
         //Drop stone with gripper
-        haveSkyStone = false;
+        if(sideColor == 1) {haveBlueSkyStone1 = false;}
+        else if(sideColor == -1) {haveRedSkyStone1 = false;}
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-6, cons.pHM.get("drivePowerLimit").value, "Back 6 inches",this);//was 4
 
@@ -418,9 +442,13 @@ public class BasicAuto extends BasicOpMode {
         //pressAToContinue();
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 35 + extraFwd, cons.pHM.get("drivePowerLimit").value, "Forward 35+ inches",this);//was 48
-
+        if(sideColor == 1) {Billy.servoBlueStoneGrab.setPosition(0);}
+        else if(sideColor == -1) {Billy.servoRedStoneGrab.setPosition(0);}
+        angleUnWrap();
+        updateIMU();
         //Drop stone with gripper
-        haveSkyStone = false;
+        if(sideColor == 1) {haveBlueSkyStone1 = false;}
+        else if(sideColor == -1) {haveRedSkyStone1 = false;}
 
     }
 
@@ -430,7 +458,7 @@ public class BasicAuto extends BasicOpMode {
 
         drv.driveGeneral(DriveMethods.moveDirection.Rotate,(90 * sideColor), cons.pHM.get("rotatePowerLimit").value,"Rotate 90 degrees CW",this);
 
-        grabSkyStone();
+        grabSkyStone2(); //KS: added 12/20/19 - needed means to identify 2nd stone as grabbed
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-8, cons.pHM.get("drivePowerLimit").value, "Back 4 inches",this);
 
@@ -451,10 +479,13 @@ public class BasicAuto extends BasicOpMode {
         //pressAToContinue();
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,35 + extraFwd + 24, cons.pHM.get("drivePowerLimit").value, "Forward with second stone",this);//was 48
-
+        if(sideColor == 1) {Billy.servoBlueStoneGrab.setPosition(0);}
+        else if(sideColor == -1) {Billy.servoRedStoneGrab.setPosition(0);}
+        angleUnWrap();
+        updateIMU();
         //Drop stone with gripper
-        haveSkyStone = false;
-
+        if(sideColor == 1) {haveBlueSkyStone2 = false;}
+        else if(sideColor == -1) {haveRedSkyStone2 = false;}
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-6, cons.pHM.get("drivePowerLimit").value, "Back 6 inches",this);//was 4
 
     }
@@ -464,7 +495,7 @@ public class BasicAuto extends BasicOpMode {
         int looped = 0;
 
         while(looped < 2 && activeOpMode) {
-            skystoneFound = vuforiaStoneIdentifyExit(looped, 1);
+            skystoneFound = vuforiaStoneIdentifyExit(looped, stoneSelect);//KS Added 12/120/19 variable to set stone location and map to field
 
             if(skystoneFound) {
 
@@ -505,6 +536,7 @@ public class BasicAuto extends BasicOpMode {
     public void grabFoundation() {
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -32, cons.pHM.get("drivePowerLimit").value, "Backward 32 inches to Foundation", this);
+        //KS 12/20/19 Does this assume that grippers are on back of robot - needs to be updated to change sign
 
         // grab foundation with servos
         if(sideColor == 1) {
@@ -577,4 +609,28 @@ public class BasicAuto extends BasicOpMode {
         drv.driveGeneral(DriveMethods.moveDirection.RightLeft, -16 * sideColor, cons.pHM.get("drivePowerLimit").value / 2, "Left 16 inches to park", this);
 
     }
+
+    public void coachFoundation(){
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 32, cons.pHM.get("drivePowerLimit").value, "Forward 32 inches to Foundation", this);
+
+        // grab foundation with servos
+        if(sideColor == 1) {haveBlueFoundation = true;}
+        else if(sideColor == -1) {haveRedFoundation = true;}
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, 10*sideColor, cons.pHM.get("drivePowerLimit").value, "Right/Left 10 inches to rotate Foundation", this);
+        drv.driveArc(10*sideColor, -92*sideColor, cons.pHM.get("drivePowerLimit").value, "move Foundation in arc", this);
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, 15, cons.pHM.get("drivePowerLimit").value, "Forward 15 inches to Push Foundation", this);
+
+        // release foundation from servos
+        if(sideColor == 1) {haveBlueFoundation = false;}
+        else if(sideColor == -1) {haveRedFoundation = false;}
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -15, cons.pHM.get("drivePowerLimit").value, "Backwards 15 inches away from Foundation", this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (11 -foundationInOut) * sideColor, cons.pHM.get("drivePowerLimit").value / 2, "Align to Bridge Side", this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -26, cons.pHM.get("drivePowerLimit").value, "Backwards 18 inches to Bridge", this);
+
+    }
+
 }

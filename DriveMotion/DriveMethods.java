@@ -95,7 +95,64 @@ public class DriveMethods{
 
 
     }
+    public void driveArc(double arcCenter, double arcAngleDeg, double powerLimit, String step, BasicAuto om) {
+        //arcCenter is positive to the right and negative to the left
+        //Forward driving is a positive arcAngelDeg
+        boolean motorsDone = false;
+        double robotWheelWidth = 18;
 
+        int[] startPos = motorStartPos(om);
+        double maxPos = Math.abs(arcCenter + robotWheelWidth/2);
+        om.Billy.frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        om.Billy.frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        om.Billy.backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        om.Billy.backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        targetPos[0] = (int) Math.round(startPos[0] + (-1 *om.cons.adjustedRotate*(arcCenter + robotWheelWidth/2)*Math.toRadians(arcAngleDeg))* om.cons.ROBOT_INCH_TO_MOTOR_DEG * om.cons.DEGREES_TO_COUNTS);
+        targetPos[1] = (int) Math.round(startPos[1] + (1 * om.cons.adjustedRotate*(arcCenter - robotWheelWidth/2)*Math.toRadians(arcAngleDeg))* om.cons.ROBOT_INCH_TO_MOTOR_DEG * om.cons.DEGREES_TO_COUNTS);
+        targetPos[2] = (int) Math.round(startPos[2] + (1 * om.cons.adjustedRotate*(arcCenter - robotWheelWidth/2)*Math.toRadians(arcAngleDeg))* om.cons.ROBOT_INCH_TO_MOTOR_DEG * om.cons.DEGREES_TO_COUNTS);
+        targetPos[3] = (int) Math.round(startPos[3] + (-1 *om.cons.adjustedRotate*(arcCenter + robotWheelWidth/2)*Math.toRadians(arcAngleDeg))* om.cons.ROBOT_INCH_TO_MOTOR_DEG * om.cons.DEGREES_TO_COUNTS);
+
+        double[] powerArray = new double[4];
+        powerArray[0] = powerLimit * Math.abs(-1 * Math.signum(arcAngleDeg)*(arcCenter + robotWheelWidth/2)/maxPos);
+        powerArray[1] = powerLimit * Math.abs(1 * Math.signum(arcAngleDeg)*(arcCenter - robotWheelWidth/2)/maxPos);
+        powerArray[2] = powerLimit * Math.abs(1 * Math.signum(arcAngleDeg)*(arcCenter - robotWheelWidth/2)/maxPos);
+        powerArray[3] = powerLimit * Math.abs(-1 * Math.signum(arcAngleDeg)*(arcCenter + robotWheelWidth/2)/maxPos);
+
+
+        setMotorPowerArray(powerArray, om);
+
+        om.Billy.frontLeft.setTargetPosition(targetPos[0]);
+        om.Billy.frontRight.setTargetPosition(targetPos[1]);
+        om.Billy.backRight.setTargetPosition(targetPos[2]);
+        om.Billy.backLeft.setTargetPosition(targetPos[3]);
+
+
+        while(!motorsDone && om.activeOpMode) {
+
+            motorsDone = targetPosTolerence(om);
+
+            om.telemetry.addData("Driving", step);
+            om.telemetry.addData("Motor Commands", "FL (%d) FR (%d) BR (%d) BL (%d)",
+                    targetPos[0],targetPos[1],targetPos[2],targetPos[3]);
+            om.telemetry.addData("Motor Counts", "FL (%d) FR (%d) BR (%d) BL (%d)",
+                    om.Billy.frontLeft.getCurrentPosition(), om.Billy.frontRight.getCurrentPosition(),
+                    om.Billy.backRight.getCurrentPosition(), om.Billy.backLeft.getCurrentPosition());
+            om.telemetry.addData("Motor Power", "FL (%.1f) FR (%.1f) BR (%.1f) BL (%.1f)",
+                    om.Billy.frontLeft.getPower(), om.Billy.frontRight.getPower(),
+                    om.Billy.backRight.getPower(), om.Billy.backLeft.getPower());
+            om.telemetry.addData("Move Tolerance","%.2f", om.cons.pHM.get("moveTol").value);
+            om.telemetry.addData("Robot Heading","%.2f", om.robotHeading);
+            om.telemetry.update();
+
+            om.angleUnWrap();
+            om.updateIMU();
+            om.idle();
+        }
+        setMotorPower(0, om);
+
+
+    }
 //    public void driveGeneralPower(moveDirection moveType, double distanceInch, double powerLimit, String step, BasicAuto om) {
 //        int countDistance = 0;
 //        int[] driveDirection = new int[4];
