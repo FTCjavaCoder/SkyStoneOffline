@@ -6,6 +6,8 @@ import TestOpModesOffline.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
@@ -35,6 +37,8 @@ public class BasicAuto extends BasicOpMode {
     public int brStart;
 
     public double extraFwd = 0;
+    public double stoneSideways = 0;
+    public double sideGrabStone = 10;
     public double foundationPosChange = 0;// 26 for unmoved Foundation, 0 for moved Foundation
     public double insideOutside = 0;// 0 for Inside, 24 for Outside
     public double foundationInOut = 26;// 0 for Inside, 26 for Outside
@@ -47,7 +51,7 @@ public class BasicAuto extends BasicOpMode {
     public double start = 0;//timer variable to use for setting waits in the code
     public float hsvValues[] = {0F, 0F, 0F};
     public double offset = 0;
-    public String colorFound = "No";
+    public String stonePos = "Unknown";
 
     public ElapsedTime runtime = new ElapsedTime(); //create a counter for elapsed time
 
@@ -234,13 +238,49 @@ public class BasicAuto extends BasicOpMode {
 //
 //        return skystone;
 //    }
+
     public boolean vuforiaStoneIdentifyExit(int loop, int desired) {
         boolean skystone = false;
         if(loop == desired){
             skystone = true;
+
         }
 
         return skystone;
+    }
+
+    public void vuforiaStoneIdentifyExitNew() {
+
+        if(sideColor == 1) {
+            if(stoneSelect == 0) {
+                stonePos = "Left";
+                stoneSideways = -12;
+            }
+            if(stoneSelect == 1) {
+                stonePos = "Center";
+                stoneSideways = -4;
+            }
+            if(stoneSelect == 2) {
+                stonePos = "Right";
+                stoneSideways = 4;
+            }
+        }
+
+        if(sideColor == -1) {
+            if(stoneSelect == 0) {
+                stonePos = "Right";
+                stoneSideways = -12;
+            }
+            if(stoneSelect == 1) {
+                stonePos = "Center";
+                stoneSideways = -4;
+            }
+            if(stoneSelect == 2) {
+                stonePos = "Left";
+                stoneSideways = 4;
+            }
+        }
+
     }
 
     public void fwdToStone() {
@@ -421,7 +461,7 @@ public class BasicAuto extends BasicOpMode {
 
     }
 
-    public void crossDropStoneFor2() {
+    public void crossDropStoneFor2Old() {
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-4, cons.pHM.get("drivePowerLimit").value, "Back 4 inches",this);
 
@@ -452,7 +492,7 @@ public class BasicAuto extends BasicOpMode {
 
     }
 
-    public void getSecondStone() {
+    public void getSecondStoneOld() {
 
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack, -35 - extraFwd - 24, cons.pHM.get("drivePowerLimit").value,"Backward to second stone",this);//was 48
 
@@ -487,6 +527,72 @@ public class BasicAuto extends BasicOpMode {
         if(sideColor == 1) {haveBlueSkyStone2 = false;}
         else if(sideColor == -1) {haveRedSkyStone2 = false;}
         drv.driveGeneral(DriveMethods.moveDirection.FwdBack,-6, cons.pHM.get("drivePowerLimit").value, "Back 6 inches",this);//was 4
+
+    }
+
+    public void goToStone() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (stoneSideways * sideColor), cons.pHM.get("drivePowerLimit").value, "Sideways to face stone",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate, (-90 * sideColor), cons.pHM.get("drivePowerLimit").value, "Rotate 90 degrees CCW",this);
+
+    }
+
+    public void takeStone1() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, sideGrabStone * sideColor, cons.pHM.get("drivePowerLimit").value, "Right 8 inches",this);
+
+        if(sideColor == 1) {Billy.servoBlueStoneGrab.setPosition(1);}
+        else if(sideColor == -1) {Billy.servoRedStoneGrab.setPosition(1);}
+        //grab skystone with gripper
+        if(sideColor == 1) {haveBlueSkyStone1 = true;}
+        else if(sideColor == -1) {haveRedSkyStone1 = true;}
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (-sideGrabStone / 2) * sideColor, cons.pHM.get("drivePowerLimit").value, "Left 8 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate, (-90 * sideColor), cons.pHM.get("drivePowerLimit").value, "Rotate 90 degrees CCW",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (45 + stoneSideways) * sideColor, cons.pHM.get("drivePowerLimit").value, "Right 45 inches",this);
+
+        //release skystone with gripper
+        if(sideColor == 1) {haveBlueSkyStone1 = false;}
+        else if(sideColor == -1) {haveRedSkyStone1 = false;}
+
+    }
+
+    public void getStone2() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft,  ( -45 - stoneSideways - 24 ) * sideColor, cons.pHM.get("drivePowerLimit").value, "Left 45+ inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate, (90 * sideColor), cons.pHM.get("drivePowerLimit").value, "Rotate 90 degrees CW",this);
+
+    }
+
+    public void takeStone2() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, sideGrabStone/2 * sideColor, cons.pHM.get("drivePowerLimit").value, "Right 8 inches",this);
+
+        if(sideColor == 1) {Billy.servoBlueStoneGrab.setPosition(1);}
+        else if(sideColor == -1) {Billy.servoRedStoneGrab.setPosition(1);}
+        //grab skystone with gripper
+        if(sideColor == 1) {haveBlueSkyStone2 = true;}
+        else if(sideColor == -1) {haveRedSkyStone2 = true;}
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, -sideGrabStone/2 * sideColor, cons.pHM.get("drivePowerLimit").value, "Left 8 inches",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.Rotate, (-90 * sideColor), cons.pHM.get("drivePowerLimit").value, "Rotate 90 degrees CCW",this);
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, (45 + stoneSideways + 24) * sideColor, cons.pHM.get("drivePowerLimit").value, "Right with stone 2",this);
+
+        //release skystone with gripper
+        if(sideColor == 1) {haveBlueSkyStone2 = false;}
+        else if(sideColor == -1) {haveRedSkyStone2 = false;}
+
+    }
+
+    public void twoStonePark() {
+
+        drv.driveGeneral(DriveMethods.moveDirection.RightLeft, -10 * sideColor, cons.pHM.get("drivePowerLimit").value, "Left 10 inches",this);
 
     }
 
