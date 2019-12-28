@@ -21,88 +21,57 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 public class Constants {
 
     public HashMap<String, ParameterHM> pHM = new HashMap();
+//    public HashMap<String, OptionAutonomous> aOHM = new HashMap();
 
     // Define the static power levels, power/speed limits, and initial positions for motors and servos
-    //public final double DRIVE_POWER_LIMIT = 0.75;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit
-    //public final double ROTATE_POWER_LIMIT = 0.25;//clockwise rotation power/speed to be converted to individual motor powers/speeds
+    public double DRIVE_POWER_LIMIT = 1;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit
+    public double ROTATE_POWER_LIMIT = 1;//clockwise rotation power/speed to be converted to individual motor powers/speeds
+    public double DRIVE_POWER_MINIMUM = 0.1;
+    public double STEERING_POWER_LIMIT = 0.5;
+    public double STEERING_POWER_GAIN = 0.1;
+    public double POWER_GAIN = 0.2;
+    public double ROTATE_POWER_GAIN = 0.02;
+    public double IMU_ROTATE_TOL = 1.0;
+    public double IMU_DISTANCE_TOL = 1.0;
 
-    public final double SLIDE_POWER_LIMIT = 0.6;// was 0.6
-    public final double TURN_POWER =  0.40;
-    //public final double TELEOP_DRIVE_POWER_LIMIT =  0.65;
+    public int MOVE_TOL = 30;// tolerance for motor reaching final positions in drive methods
 
-    //    final double OMNI_EFFICIENCY = 1/1.35;// unitless - factor that's needed to reduce total wheel travel to match forward/back and right/left motion, doesn't apply for rotate
+    public double TELEOP_DRIVE_POWER_LIMIT = 1;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit for teleop
+    public double TELEOP_ROTATE_POWER_LIMIT = 1;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit for teleop
+
+    public double JACK_POWER_LIMIT = 0.75;
+    public double SLIDE_POWER_LIMIT = 0.6;// was 0.6
+
+//    public final double TURN_POWER =  0.40;
+
+    public double dropStoneForward = 35;
+    public double foundationExtraFwd = 0;
+    public double foundationExtraSideways = 0;
+
     public final double ROBOT_INCH_TO_MOTOR_DEG = 360 / (3.875 * 3.14159); // units deg/inch - 360 deg. / wheel circumference (Wheel diameter x pi)
-    public final int NUMBER_OF_JACK_STAGES = 2 * 3;// ASSUMING 3 PAIRS OF PIECES PER SIDE
-    public final double L = 5.04;//
-    public final double W0 = 999;//
-    public final double H0 = 999;//
-    public final double MOTOR_DEG_TO_LEAD = 0/360; //Replace 0 with the distance between the ridges of the lead screw
+    public final int NUMBER_OF_JACK_STAGES = 3;// ASSUMING 3 PAIRS OF PIECES PER SIDE
+    public final double MOTOR_DEG_TO_LEAD = 0.315/360; //Replace 0 with the distance between the ridges of the lead screw
     public final double SLIDE_INCH_TO_MOTOR_DEG = (3 / 3) * 360; // (3 screw rev / inch) * ( 1 motor rev / 3 screw rev) * 360 degrees / motor rev
     // 1/3 gear ratio 16 turns per inch screw
     // DERIVATION alpha = 2*AL/D; AL = arc length = wheel travel in inches, D = wheel diameter, alpha = wheel angle in radians
     // AL is input so conversion = 2/D * 180/pi (convert to degrees
     // alpha = AL * (360 / (D*pi))
     public final int DEGREES_TO_COUNTS = 1440 / 360; // units counts/degree - based on 1440 per 1 revolution
-    public final double ROBOT_DEG_TO_WHEEL_INCH = 18.270918668 * 3.14159 / 360;// units of inch/degree - Robot rotation circumference [(wheel base (diagonal)] * pi/360 deg
+    public final double ROBOT_DEG_TO_WHEEL_INCH = 16.904807 * 3.14159 / 360;//NR wheel center to center 16.904807// units of inch/degree -- Robot rotation circumference [(wheel base (diagonal)] * pi/360 deg
     // DERIVATION AL = theta * RTD/2; AL = arc length = wheel travel in inches, RTD = robot turning diameter, theta = robot angle in radians
     // theta is input so conversion = RTD/2 * pi/180 (convert input in degrees to radians)
     // AL = theta * (RTD * pi/360)
-    //public final int MOVE_TOL = 8;// tolerance for motor reaching final positions in drive methods
-    public final double GAIN = 0.5;
-    public final double IMU_TOL = 320;
-    public final double IMU_ROTATE_TOL = 2;
-    public final int SLIDE_TOL = 20;
-    public final double ARM_POSITION_THRESHOLD =  0.1; // Threshold in gamepad stick coordinates 0 - 1
-    public final int ARM_POSITION_INCREMENT =  3; // Increment in degrees
-
-    public final double stowServoMarker = 0.15; //0.2
-    public final double deployServoMarker = 0.7; //0.75
-    public final double markerTimeDelay = 0.5;
-
-    public final double SLIDE_ROTATE_POWER_LIMIT = 0.75;
-    public final double SLIDE_EXTEND_POWER_LIMIT = 0.75;
-    public final double SLIDE_ROTATE_DEG_TO_MOTOR_DEG = 4;
-    public final double SLIDE_EXTEND_INCH_TO_MOTOR_DEG = 2 * (1/0.011); //gear ratio x degrees per inch
-    public final double LINEAR_SLIDE_POWER_LIMIT = 0.5;
-    public final double LINEAR_SLIDE_EXTEND_INCREMENT = 0.05; //previously 0.25
-    public final int LINEAR_SLIDE_EXTEND_MIN = -16;
-    public final int LINEAR_SLIDE_EXTEND_MAX = 0;
-    public final double LINEAR_SLIDE_ROTATE_INCREMENT = 0.5; //previously 0.1
-    public final int LINEAR_SLIDE_ROTATE_MIN = -150;// WAS -110
-    public final int LINEAR_SLIDE_ROTATE_MAX = 45; // IS GOOD
-    public final double BOX_SERVO_INCREMENT = 0.005;
-
-    public final double STICK_DEADZONE = 0.1;
-    public final double SET_EXTEND_1 = -16; //-16/-16
-    public final double SET_ROTATE_1 = -23; //-93/-23
-    public final double MINBOX_SETPOS_1 = 0.75; //1/0.75
-    public final double SET_EXTEND_2 = -14.2;//-16/-15.3/-14.2
-    public final double SET_ROTATE_2 = -130; //-70/-114.5/-125/-130
-    public final double MINBOX_SETPOS_2 = 1; //0.75/1
-    public final double SET_ROTATE_3 = -35;
-    public final double MINBOX_SETPOS_3 = 1;
-    public final double SET_EXTEND_4 = -6.625;
-    public final double SET_ROTATE_4 = -100;
-
+    public double GAIN = 0.5;
 
     /*
      * Gripper and wrist disabled, by not calling the the properties
      */
 
-    //double adjustedFwd = 1.01587302;
-    public final double adjustedRotate = 1.36;
-    public final double adjustedRight = 1.22163309;
-    public final double targetColorRange[] = {15, 30};
-    public final double SCALE_FACTOR = 255;
-    public final double saturationTolerance = 0.55;
-    public final double cubeKnockOffDistance = 12;
+    public final double adjForward = 0.964;// may simply be the difference between the two robots wheel diameters
+    public final double adjRotate = 1.236;//
+    public final double adjRight = 1.079;//
 
-
-    public static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
-    public static final String LABEL_GOLD_MINERAL = "Gold Mineral";
-    public static final String LABEL_SILVER_MINERAL = "Silver Mineral";
-
-    public static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = FRONT;
+    public static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
     public static final String VUFORIA_KEY = " AUtTfjH/////AAAAGalBbST5Vkv8kqIoszZrsYOCBYcUVlFwYJ2rvrvVgm4ie/idQYx2x++SWi3UMEJnuP7Zww+cqOgyLepotRs9ppGxpCDcintIz0pIixMr+bievjJUDzdn0PyAJ6QUZK3xzoqDkTY1R99qvRORmTTqCx2/rGfYPlcOpdL5oWdhQsUatHyneF/eiWGBincPqBx3JfVwZnscF/B7J+u76YA4VTWLl8bl3iu26IYXMZE0zi7Pk+s9/pRQCCrLcxsvns4ouiSg3n61Z+jv8aS6y9ncwDdg0nm/XwDeiIrworkIPcPTW73LKpzX/63C1HprikXUJ+fm1eAkCfNy06n9SNTq20jxc7NXtGVUoE+WbNGmE4yb ";
 
 
@@ -112,17 +81,102 @@ public class Constants {
 
     public void defineParameters() {
 
-        pHM.put("drivePowerLimit", new ParameterHM(0.75, ParameterHM.instanceType.powerLimit));
+        pHM.put("drivePowerLimit", new ParameterHM( 1.0, ParameterHM.instanceType.powerLimit));// was 0.75
 
-        pHM.put("rotatePowerLimit", new ParameterHM(0.25, ParameterHM.instanceType.powerLimit));
+        pHM.put("drivePowerMinimum", new ParameterHM( 0.1, ParameterHM.instanceType.powerLimit));//was 0.2
 
-        pHM.put("teleOpDrivePowerLimit", new ParameterHM(0.65, ParameterHM.instanceType.powerLimit));
+        pHM.put("rotatePowerLimit", new ParameterHM(1, ParameterHM.instanceType.powerLimit));// was 0.75
 
-        pHM.put("jackPowerLimit", new ParameterHM(0.25, ParameterHM.instanceType.powerLimit));
+        pHM.put("powerGain", new ParameterHM(0.2, ParameterHM.instanceType.powerLimit));// new
 
-        pHM.put("moveTol", new ParameterHM(8, ParameterHM.instanceType.toleranceCounts));
+        pHM.put("rotatePowerGain", new ParameterHM(0.02, ParameterHM.instanceType.powerLimit));// was 0.05
+
+        pHM.put("IMURotateTol", new ParameterHM(1.0, ParameterHM.instanceType.rotationDegrees));// was 2.0
+
+        pHM.put("IMUDistanceTol", new ParameterHM(1.0, ParameterHM.instanceType.distanceInches));// new
+
+        pHM.put("steeringPowerGain", new ParameterHM(0.1, ParameterHM.instanceType.powerLimit));// new
+
+        pHM.put("steeringPowerLimit", new ParameterHM(0.5, ParameterHM.instanceType.powerLimit));// new
+
+        pHM.put("teleOpDrivePowerLimit", new ParameterHM(1, ParameterHM.instanceType.powerLimit));// was 0.55
+
+        pHM.put("teleOpRotatePowerLimit", new ParameterHM(1, ParameterHM.instanceType.powerLimit));// was 0.40
+
+        pHM.put("jackPowerLimit", new ParameterHM(0.75, ParameterHM.instanceType.powerLimit));
+
+        pHM.put("slidePowerLimit", new ParameterHM(0.40, ParameterHM.instanceType.powerLimit));
+
+        pHM.put("moveTol", new ParameterHM(30, ParameterHM.instanceType.toleranceCounts));// was !! 8 !!
+
+        pHM.put("dropStoneForward", new ParameterHM(35, ParameterHM.instanceType.distanceInches));// For crossDropStonePark method
+
+        pHM.put("foundationExtraFwd", new ParameterHM(0, ParameterHM.instanceType.distanceInches));// For different positions of Foundation allowing us to still use SkystoneInside
+
+        pHM.put("foundationExtraSideways", new ParameterHM(0, ParameterHM.instanceType.distanceInches));// For different positions of Foundation allowing us to still use SkystoneInside
 
     }// Define initial values for HashMap parameters
+
+    public void initParameters() {
+
+        for(String s:pHM.keySet()) {
+
+            if(s.equals("drivePowerLimit")) {
+                DRIVE_POWER_LIMIT = pHM.get(s).value;
+            }
+            if(s.equals("drivePowerMinimum")) {
+                DRIVE_POWER_MINIMUM = pHM.get(s).value;
+            }
+            if(s.equals("rotatePowerLimit")) {
+                ROTATE_POWER_LIMIT = pHM.get(s).value;
+            }
+            if(s.equals("powerGain")) {
+                POWER_GAIN = pHM.get(s).value;
+            }
+            if(s.equals("rotatePowerGain")) {
+                ROTATE_POWER_GAIN = pHM.get(s).value;
+            }
+            if(s.equals("IMURotateTol")) {
+                IMU_ROTATE_TOL = pHM.get(s).value;
+            }
+            if(s.equals("IMUDistanceTol")) {
+                IMU_DISTANCE_TOL = pHM.get(s).value;
+            }
+            if(s.equals("steeringPowerLimit")) {
+                STEERING_POWER_LIMIT = pHM.get(s).value;
+            }
+            if(s.equals("steeringPowerGain")) {
+                STEERING_POWER_GAIN = pHM.get(s).value;
+            }
+            if(s.equals("teleOpDrivePowerLimit")) {
+                TELEOP_DRIVE_POWER_LIMIT = pHM.get(s).value;
+            }
+            if(s.equals("teleOpRotatePowerLimit")) {
+                TELEOP_ROTATE_POWER_LIMIT = pHM.get(s).value;
+            }
+            if(s.equals("jackPowerLimit")) {
+                JACK_POWER_LIMIT = pHM.get(s).value;
+            }
+            if(s.equals("slidePowerLimit")) {
+                SLIDE_POWER_LIMIT = pHM.get(s).value;
+            }
+            if(s.equals("moveTol")) {
+                MOVE_TOL = pHM.get(s).integerParameter();
+            }
+            if(s.equals("dropStoneForward")) {
+                dropStoneForward = pHM.get(s).value;
+            }
+            if(s.equals("foundationExtraFwd")) {
+                foundationExtraFwd = pHM.get(s).value;
+            }
+            if(s.equals("foundationExtraSideways")) {
+                foundationExtraSideways = pHM.get(s).value;
+            }
+
+
+
+        }
+    }
 
     public void writeToPhone(String fileName, BasicOpMode om) {
         Context c = om.hardwareMap.appContext;
@@ -229,6 +283,55 @@ public class Constants {
 
             om.telemetry.addData("Exception","%s", e.toString());
             om.telemetry.update();
+        }
+    }
+
+    public void editHashMap(BasicOpMode om) {
+
+        for(String s : pHM.keySet()) {
+
+            while(!(om.gamepad1.x || om.gamepad1.b) && om.opModeIsActive()) {
+                // X to EDIT || B to SKIP
+                om.telemetry.addData("Parameter Name", "%s", s);
+                om.telemetry.addData("Value", "%.2f", pHM.get(s).value);
+                om.telemetry.addData("Type", "%s", pHM.get(s).paramType);
+                om.telemetry.addData("Range?", "%s", pHM.get(s).hasRange);
+                om.telemetry.addData("Min", "%.2f", pHM.get(s).min);
+                om.telemetry.addData("Max", "%.2f", pHM.get(s).max);
+                om.telemetry.addData("Increment", "%.2f", pHM.get(s).increment);
+                om.telemetry.addLine("X to EDIT || B to SKIP");
+                om.telemetry.update();
+            }
+            if(om.gamepad1.x) {
+
+                while(!om.gamepad1.y && om.opModeIsActive()) {
+
+                    om.telemetry.addData("Parameter Name", "%s", s);
+                    om.telemetry.addData("Value", "%.2f", pHM.get(s).value);
+                    om.telemetry.addData("Increment", "%.2f", pHM.get(s).increment);
+                    om.telemetry.addLine("Right Bumper to increase, Left Bumper to decrease");
+                    om.telemetry.addLine("Press Y to accept value");
+                    om.telemetry.update();
+
+                    if(om.gamepad1.right_bumper) {
+
+                        pHM.get(s).increaseParameter();
+                        om.sleep(300);
+                    }
+                    if(om.gamepad1.left_bumper) {
+
+                        pHM.get(s).decreaseParameter();
+                        om.sleep(300);
+                    }
+                }
+            }
+            if(om.gamepad1.b) {
+
+                om.telemetry.addData("Skipped","%s", s);
+                om.telemetry.update();
+                om.sleep(500);
+            }
+
         }
     }
 
@@ -340,53 +443,176 @@ public class Constants {
         }
     }
 
-    public void editHashMap(BasicOpMode om) {
 
-        for(String s : pHM.keySet()) {
-
-            while(!(om.gamepad1.x || om.gamepad1.b) && om.opModeIsActive()) {
-                // X to EDIT || B to SKIP
-                om.telemetry.addData("Parameter Name", "%s", s);
-                om.telemetry.addData("Value", "%.2f", pHM.get(s).value);
-                om.telemetry.addData("Type", "%s", pHM.get(s).paramType);
-                om.telemetry.addData("Range?", "%s", pHM.get(s).hasRange);
-                om.telemetry.addData("Min", "%.2f", pHM.get(s).min);
-                om.telemetry.addData("Max", "%.2f", pHM.get(s).max);
-                om.telemetry.addData("Increment", "%.2f", pHM.get(s).increment);
-                om.telemetry.addLine("X to EDIT || B to SKIP");
-                om.telemetry.update();
-            }
-            if(om.gamepad1.x) {
-
-                while(!om.gamepad1.y && om.opModeIsActive()) {
-
-                    om.telemetry.addData("Parameter Name", "%s", s);
-                    om.telemetry.addData("Value", "%.2f", pHM.get(s).value);
-                    om.telemetry.addData("Increment", "%.2f", pHM.get(s).increment);
-                    om.telemetry.addLine("Right Bumper to increase, Left Bumper to decrease");
-                    om.telemetry.addLine("Press Y to accept value");
-                    om.telemetry.update();
-
-                    if(om.gamepad1.right_bumper) {
-
-                        pHM.get(s).increaseParameter();
-                        om.sleep(300);
-                    }
-                    if(om.gamepad1.left_bumper) {
-
-                        pHM.get(s).decreaseParameter();
-                        om.sleep(300);
-                    }
-                }
-            }
-            if(om.gamepad1.b) {
-
-                om.telemetry.addData("Skipped","%s", s);
-                om.telemetry.update();
-                om.sleep(500);
-            }
-
-        }
-    }
+    // AUTONOMOUS OPTIONS
+//    public void defineAutoOptions() {
+//
+//        aOHM.put("skyStoneInside", new OptionAutonomous(OptionAutonomous.name.skyStoneInside));
+//
+//        aOHM.put("skyStoneInsideUnmoved", new OptionAutonomous(OptionAutonomous.name.skyStoneInsideUnmoved));
+//
+//        aOHM.put("skyStoneOutside", new OptionAutonomous(OptionAutonomous.name.skyStoneOutside));
+//
+//        aOHM.put("skyStoneOutsideUnmoved", new OptionAutonomous(OptionAutonomous.name.skyStoneOutsideUnmoved));
+//
+//        aOHM.put("foundationInside", new OptionAutonomous(OptionAutonomous.name.foundationInside));
+//
+//        aOHM.put("foundationOutside", new OptionAutonomous(OptionAutonomous.name.foundationOutside));
+//
+//    }// Define Autonomous options
+//
+//    public void writeToPhoneAO(String fileName, BasicOpMode om) {
+//        Context c = om.hardwareMap.appContext;
+//
+//        try {
+//
+//            OutputStreamWriter osw = new OutputStreamWriter(c.openFileOutput(fileName, c.MODE_PRIVATE));
+//
+//            for (String s : aOHM.keySet()) {
+//
+//                osw.write(s + "\n");
+//                om.telemetry.addData("Option Name", "%s", s);
+//                osw.write(aOHM.get(s).optionNumber + "\n");
+//                om.telemetry.addData("Number", "%.2f", aOHM.get(s).optionNumber);
+//                osw.write(aOHM.get(s).description + "\n");
+//                om.telemetry.addData("Description", "%s", aOHM.get(s).description);
+//
+//                osw.close();
+//            }
+//        }
+//        catch(Exception e){
+//
+//                Log.e("Exception", e.toString());
+//
+//                om.telemetry.addData("Exception", "%s", e.toString());
+//                om.telemetry.update();
+//            }
+//
+//    }
+//
+//    public void readFromPhoneAO(String fileName, BasicOpMode om) {
+//        Context c = om.hardwareMap.appContext;
+//
+//        try {
+//            InputStream is = c.openFileInput(fileName);
+//            InputStreamReader isr = new InputStreamReader(is);
+//            BufferedReader br = new BufferedReader(isr);
+//
+//            String s;
+//            while((s = br.readLine())!= null) {
+//
+//                double n = Double.parseDouble(br.readLine());
+//                String d = br.readLine();
+//
+//                switch (s) {
+//
+//                    case ("skyStoneOutside") :
+//                        aOHM.put(s, new OptionAutonomous(OptionAutonomous.name.skyStoneOutside));
+//                        break;
+//                    case ("skyStoneInside") :
+//                        aOHM.put(s, new OptionAutonomous(OptionAutonomous.name.skyStoneInside));
+//                        break;
+//
+//                    case ("skyStoneOutsideUnmoved") :
+//                        aOHM.put(s, new OptionAutonomous(OptionAutonomous.name.skyStoneOutsideUnmoved));
+//                        break;
+//
+//                    case ("skyStoneInsideUnmoved") :
+//                        aOHM.put(s, new OptionAutonomous(OptionAutonomous.name.skyStoneInsideUnmoved));
+//                        break;
+//
+//                    case ("foundationOutside") :
+//                        aOHM.put(s, new OptionAutonomous(OptionAutonomous.name.foundationOutside));
+//                        break;
+//
+//                    case ("foundationInside") :
+//                        aOHM.put(s, new OptionAutonomous(OptionAutonomous.name.foundationInside));
+//                        break;
+//                }
+//
+//                om.fileWasRead = true;
+//
+//                om.telemetry.addData("Option Name", "%s", s);
+//                om.telemetry.addData("Number", "%.2f", n);
+//                om.telemetry.addData("Description", "%s", d);
+//
+//                om.idle();
+//            }
+//
+//            is.close();
+//        }
+//        catch(Exception e) {
+//
+//            Log.e("Exception", e.toString());
+//
+//            om.fileWasRead = false;
+//
+//            om.telemetry.addData("Exception","%s", e.toString());
+//            om.telemetry.update();
+//        }
+//    }
+//
+//    public void editHashMapAO(BasicOpMode om) {
+//
+//        for(String s : aOHM.keySet()) {
+//
+//            while(!(om.gamepad1.x || om.gamepad1.b) && om.opModeIsActive()) {
+//                // X to EDIT || B to SKIP
+//                om.telemetry.addData("Option Name", "%s", s);
+//                om.telemetry.addData("Number", "%.2f", aOHM.get(s).optionNumber);
+//                om.telemetry.addData("Description", "%s", aOHM.get(s).description);
+//
+//                om.telemetry.addLine("X to Select || B to SKIP");
+//                om.telemetry.update();
+//            }
+//            if(om.gamepad1.x) {
+//
+//                while(!om.gamepad1.y && !om.gamepad1.b && om.opModeIsActive()) {
+//
+//                    om.telemetry.addData("Option Name", "%s", s);
+//                    om.telemetry.addData("Number", "%.2f", aOHM.get(s).optionNumber);
+//                    om.telemetry.addData("Description", "%s", aOHM.get(s).description);
+//                    om.telemetry.addLine("Press Y to confirm or B to skip");
+//                    om.telemetry.update();
+//
+//                    if(om.gamepad1.y) {
+//// {skyStoneOutside, skyStoneInside, skyStoneOutsideUnmoved, skyStoneInsideUnmoved, foundationOutside, foundationInside}
+//                        if(aOHM.get(s).optionNumber == 1) {
+//
+//                            om.selected = "skyStoneOutside";
+//                        }
+//                        if(aOHM.get(s).optionNumber == 2) {
+//
+//                            om.selected = "skyStoneInside";
+//                        }
+//                        if(aOHM.get(s).optionNumber == 3) {
+//
+//                            om.selected = "skyStoneOutsideUnmoved";
+//                        }if(aOHM.get(s).optionNumber == 4) {
+//
+//                            om.selected = "skyStoneInsideUnmoved";
+//                        }
+//                        if(aOHM.get(s).optionNumber == 5) {
+//
+//                            om.selected = "foundationOutside";
+//                        }
+//                        if(aOHM.get(s).optionNumber == 6) {
+//
+//                            om.selected = "foundationInside";
+//                        }
+//
+//                        om.sleep(300);
+//                    }
+//                }
+//            }
+//            if(om.gamepad1.b) {
+//
+//                om.telemetry.addData("Skipped","%s", s);
+//                om.telemetry.update();
+//                om.sleep(500);
+//            }
+//
+//        }
+//    }
 
 }

@@ -19,7 +19,7 @@ public class ParameterHM {
                 value = inputValue;
                 min = -1;
                 max = 1;
-                increment = 0.05;
+                increment = 0.01;
                 paramType = type;
                 break;
 
@@ -47,7 +47,7 @@ public class ParameterHM {
             case rotationDegrees :
                 value = inputValue;
                 hasRange = false;
-                increment = 5;
+                increment = .25;
                 paramType = type;
                 break;
 
