@@ -446,7 +446,7 @@ public class HardwareBilly
             om.telemetry.addData("Driving: ", step);
 //            om.telemetry.addData("Motor Commands: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
 //                    targetPos[0], targetPos[1],targetPos[2],targetPos[3]);
-            om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f, IMU: %.2f",targetAngle,robotHeading, -imu.fakeAngle);
+            om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f",targetAngle,robotHeading);
             om.telemetry.addData("Motor Counts: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
                     currentPos[0],currentPos[1],currentPos[2],currentPos[3]);
             om.telemetry.addData("Motor Power: ", "FL (%.2f) FR (%.2f) BR (%.2f) BL (%.2f)",
@@ -465,7 +465,7 @@ public class HardwareBilly
         om.telemetry.addData("COMPLETED Driving: ", step);
 //        om.telemetry.addData("Motor Commands: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
 //                targetPos[0], targetPos[1],targetPos[2],targetPos[3]);
-        om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f, IMU: %.2f",targetAngle,robotHeading, -imu.fakeAngle);
+        om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f",targetAngle,robotHeading);
         om.telemetry.addData("Motor Counts: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
                 frontLeft.getCurrentPosition(), frontRight.getCurrentPosition(),
                 backRight.getCurrentPosition(), backLeft.getCurrentPosition());
@@ -541,7 +541,7 @@ public class HardwareBilly
                     currentPos[0], currentPos[1], currentPos[2], currentPos[3]);
             om.telemetry.addData("Motor Power: ", "FL (%.2f) FR (%.2f) BR (%.2f) BL (%.2f)",
                     setPower[0],setPower[1],setPower[2],setPower[3]);
-            om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f, IMU: %.2f",targetAngle,robotHeading, -imu.fakeAngle);
+            om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f",targetAngle,robotHeading);
             om.telemetry.addData("Time: ", om.runtime);
             om.telemetry.addLine("=========================================");
             om.telemetry.update();
@@ -556,7 +556,7 @@ public class HardwareBilly
         om.telemetry.addData("COMPLETED Driving: ", step);
         om.telemetry.addData("Motor Counts: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
                 currentPos[0], currentPos[1], currentPos[2], currentPos[3]);
-        om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f, IMU: %.2f",targetAngle,robotHeading, -imu.fakeAngle);
+        om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f",targetAngle,robotHeading);
         om.telemetry.addData("Time: ", om.runtime);
         om.telemetry.update();
         //*************** MODIFIED TELEMETRY FOR DEBUGGING ************************************
