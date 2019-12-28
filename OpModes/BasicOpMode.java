@@ -62,9 +62,10 @@ public class BasicOpMode extends LinearOpMode {
             cons.defineParameters();
             cons.writeToPhone(hashMapFile, this);
 
-            cons.readFromPhone(hashMapFile, this);
+            cons.readFromPhone(hashMapFile, this);//Can be eliminated because HashMap exists in constants from defineParameters
             telemetry.addData("Created File, File Was Read?","%s", fileWasRead);
-
+            //No telemetry.update();
+            //Note differences in Pancho's Constants_Pw
         }
 
         cons.initParameters();
@@ -80,10 +81,15 @@ public class BasicOpMode extends LinearOpMode {
             cons.defineParameters();
             cons.writeToFile(hashMapFile, this);
 
-            cons.readFromFile(hashMapFile, this);
+            cons.readFromFile(hashMapFile, this);//Can be eliminated because HashMap exists in constants from defineParameters
             telemetry.addData("Created File, File Was Read?","%s", fileWasRead);
             telemetry.update();
         }
+        // ******************** ADDED initPARAMETERS ****************
+        cons.initParameters();
+        //Note differences in Pancho's Constants_Pw implementation
+        // ******************** ADDED initPARAMETERS ****************
+
     }
 
 //    public void readOrWriteHashMapAO() {

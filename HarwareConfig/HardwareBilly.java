@@ -432,19 +432,27 @@ public class HardwareBilly
 
             for(int i = 0; i < 4; i++){
 
-                prePower[i] = prePower[i] / max;
+                //*************** MODIFIED POWER CLIP FOR setPower TO HAVE DRIVE_POWER_MINIMUM ************************************
 
+//                prePower[i] = prePower[i] / max;//NOT LIMITED TO DRIVE_POWER_MINIMUM
+                setPower[i] = Math.signum(prePower[i]) * Range.clip(Math.abs(prePower[i] / max),DRIVE_POWER_MINIMUM,DRIVE_POWER_LIMIT);
+                //*************** MODIFIED POWER CLIP FOR setPower TO HAVE DRIVE_POWER_MINIMUM ************************************
             }
+            //*************** MODIFIED TO setPower  ************************************
+            setMotorPowerArray(setPower);
+            //*************** MODIFIED TO setPower  ************************************
 
-            setMotorPowerArray(prePower);
-
+            //*************** MODIFIED TELEMETRY FOR DEBUGGING ************************************
             om.telemetry.addData("Driving: ", step);
-            om.telemetry.addData("Motor Commands: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
-                    targetPos[0], targetPos[1],targetPos[2],targetPos[3]);
+//            om.telemetry.addData("Motor Commands: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
+//                    targetPos[0], targetPos[1],targetPos[2],targetPos[3]);
+            om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f, IMU: %.2f",targetAngle,robotHeading, -imu.fakeAngle);
             om.telemetry.addData("Motor Counts: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
-                    frontLeft.getCurrentPosition(), frontRight.getCurrentPosition(),
-                    backRight.getCurrentPosition(), backLeft.getCurrentPosition());
-            om.telemetry.addData("Move Tolerance: ", MOVE_TOL);
+                    currentPos[0],currentPos[1],currentPos[2],currentPos[3]);
+            om.telemetry.addData("Motor Power: ", "FL (%.2f) FR (%.2f) BR (%.2f) BL (%.2f)",
+                    setPower[0],setPower[1],setPower[2],setPower[3]);
+            om.telemetry.addData("Steering ", "Power: %.2f, Gain: %.3f", steeringPower,STEERING_POWER_GAIN);
+            om.telemetry.addData("Distance Moved: ", "%.2f",distanceTraveled);
             om.telemetry.addData("Time: ", om.runtime);
             om.telemetry.update();
         }
@@ -454,15 +462,18 @@ public class HardwareBilly
         angleUnWrap();
         om.updateIMU();
 
-        om.telemetry.addData("Driving: ", step);
-        om.telemetry.addData("Motor Commands: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
-                targetPos[0], targetPos[1],targetPos[2],targetPos[3]);
+        om.telemetry.addData("COMPLETED Driving: ", step);
+//        om.telemetry.addData("Motor Commands: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
+//                targetPos[0], targetPos[1],targetPos[2],targetPos[3]);
+        om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f, IMU: %.2f",targetAngle,robotHeading, -imu.fakeAngle);
         om.telemetry.addData("Motor Counts: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
                 frontLeft.getCurrentPosition(), frontRight.getCurrentPosition(),
                 backRight.getCurrentPosition(), backLeft.getCurrentPosition());
-        om.telemetry.addData("Move Tolerance: ", MOVE_TOL);
+        om.telemetry.addData("Distance Moved: ", "%.2f",distanceTraveled);
         om.telemetry.addData("Time: ", om.runtime);
+        om.telemetry.addLine("=========================================");
         om.telemetry.update();
+        //*************** MODIFIED TELEMETRY FOR DEBUGGING ************************************
     }
 
     public void IMUDriveRotate(double targetAngle, String step, BasicAuto om) {
@@ -486,7 +497,10 @@ public class HardwareBilly
         driveDirection[1] = -1;// FR
         driveDirection[2] = -1;// BR
         driveDirection[3] = -1;// BL
+        //*************** ADDED CURRENT POSITION CALCULATION  ************************************
 
+        currentPos = motorStartPos();
+        //*************** ADDED CURRENT POSITION CALCULATION  ************************************
 
         angleUnWrap();
         om.updateIMU();
@@ -502,6 +516,11 @@ public class HardwareBilly
         setMotorPowerArray(prePower);
 
         while( (Math.abs(targetAngle - robotHeading) > IMU_ROTATE_TOL) && (om.opModeIsActive() || om.testModeActive)) {
+            //*************** ADDED CURRENT POSITION CALCULATION  FOR TELEMETRY ************************************
+
+            currentPos = motorStartPos();
+            //*************** ADDED CURRENT POSITION CALCULATION  FOR TELEMETRY ************************************
+
 
             angleUnWrap();
             om.updateIMU();
@@ -515,12 +534,16 @@ public class HardwareBilly
             }
 
             setMotorPowerArray(prePower);
+            //*************** MODIFIED TELEMETRY FOR DEBUGGING ************************************
 
             om.telemetry.addData("Driving: ", step);
             om.telemetry.addData("Motor Counts: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
                     currentPos[0], currentPos[1], currentPos[2], currentPos[3]);
-            om.telemetry.addData("Move Tolerance: ", MOVE_TOL);
+            om.telemetry.addData("Motor Power: ", "FL (%.2f) FR (%.2f) BR (%.2f) BL (%.2f)",
+                    setPower[0],setPower[1],setPower[2],setPower[3]);
+            om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f, IMU: %.2f",targetAngle,robotHeading, -imu.fakeAngle);
             om.telemetry.addData("Time: ", om.runtime);
+            om.telemetry.addLine("=========================================");
             om.telemetry.update();
         }
 
@@ -530,12 +553,14 @@ public class HardwareBilly
         angleUnWrap();
         om.updateIMU();
 
-        om.telemetry.addData("Driving: ", step);
+        om.telemetry.addData("COMPLETED Driving: ", step);
         om.telemetry.addData("Motor Counts: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
                 currentPos[0], currentPos[1], currentPos[2], currentPos[3]);
-        om.telemetry.addData("Move Tolerance: ", MOVE_TOL);
+        om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f, IMU: %.2f",targetAngle,robotHeading, -imu.fakeAngle);
         om.telemetry.addData("Time: ", om.runtime);
         om.telemetry.update();
+        //*************** MODIFIED TELEMETRY FOR DEBUGGING ************************************
+
     }
 
     public double calcSteeringPowerIMU(double angleWanted) {
