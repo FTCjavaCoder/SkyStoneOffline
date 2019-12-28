@@ -2,6 +2,7 @@ package Skystone_14999.OpModes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import TestOpModesOffline.OpModeParamFunctions;
 import Skystone_14999.HarwareConfig.HardwareBilly;
 import Skystone_14999.Parameters.Constants;
 import TestOpModesOffline.Telemetry;
@@ -10,6 +11,13 @@ public class BasicOpMode extends LinearOpMode {
 
     public HardwareBilly Billy = new HardwareBilly();// call using Billy.(for hardware or angle unwrap method)
     public Constants cons = new Constants();// call using cons.(constant DRIVE_POWER_LIMIT etc.)
+
+    //********************UPDATED 12/27/19 for OpMpde HashMap *********************************
+    public OpModeParamFunctions ompf = new OpModeParamFunctions();
+    public boolean loadFile = true;
+    public String fileName = "AndroidHashMapFile.txt";
+    public String fileNameEdited = "AndroidHashMapFileEdited.txt";
+    //********************UPDATED 12/27/19 for OpMpde HashMap *********************************
 
     public boolean fileWasRead = true;
     public String hashMapFile = "HashMapFile.txt";
