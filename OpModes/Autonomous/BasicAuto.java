@@ -1051,7 +1051,8 @@ public class BasicAuto extends BasicOpMode {
         Billy.servoFoundationL.setPosition(0.10);
         Billy.servoFoundationR.setPosition(0.90);
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, 30, 0,"Forward 32 inches to Foundation", this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, 36, 0,"Forward 36 inches to Foundation", this);
+        //Added 6 inches for move - 2 for robot starting distance and 4 for distance to servos being 14: from back of robot vs. 18" from back
 
         Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, 2,0,"Forward 2 inches to Foundation", this);
 
@@ -1148,4 +1149,19 @@ public class BasicAuto extends BasicOpMode {
 
     }
 
+
+    public void foundationInCorner() {
+        int h=0;
+        for(h=1;h<4;h++) {
+            Billy.IMUDriveRotate((-10 * sideColor)*h, "rotate", this);
+            Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -12, (-10 * sideColor)*h, "backup", this);
+        }
+        Billy.IMUDriveRotate(-90*sideColor, "rotate parallel to wall", this);
+        if(sideColor == 1) {haveBlueFoundation = false;}
+        if(sideColor == -1) {haveRedFoundation = false;}
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -6, -90*sideColor, "backup to clear foundation", this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (0+insideOutside)*sideColor, -90*sideColor, "align to inside or outside", this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -44, -90*sideColor, "backup", this);
+
+    }
 }
