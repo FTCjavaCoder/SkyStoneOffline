@@ -1076,7 +1076,7 @@ public class BasicAuto extends BasicOpMode {
 
     public void pullFoundation() {
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -29, 0, "Backward 31 inches with Foundation", this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -29, 0, "Backward 29 inches with Foundation", this);
 
 //        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, -2, (cons.pHM.get("drivePowerLimit").value / 2), "Backward 2 inches with Foundation", this);
 
@@ -1096,6 +1096,40 @@ public class BasicAuto extends BasicOpMode {
                 haveRedFoundation = false;
             }
         }
+    }
+
+    public void pullFoundationAngle() {
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -33, -10 * sideColor, "Backward 31 inches at 5 CCW with Foundation", this);
+
+//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, 10 * sideColor, -15 * sideColor, "Right 10 inches with Foundation", this);
+
+        Billy.IMUDriveRotate((-20 * sideColor), "Rotate to 20 degrees CCW",this);
+//
+//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, 5, -90 * sideColor, "Forward 5 inches with Foundation", this);
+
+        // release foundation from gripper
+        Billy.servoFoundationL.setPosition(0.10);
+        Billy.servoFoundationR.setPosition(0.90);
+
+        if(testModeActive) {
+            if(sideColor == 1) {
+
+                haveBlueFoundation = false;
+            }
+            if(sideColor == -1) {
+
+                haveRedFoundation = false;
+            }
+        }
+    }
+
+    public void awayFromFoundationOneMove() {
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -2,  (-20 * sideColor),"Backward 2 inches away from Foundation", this);
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (50 * sideColor), 0,"Right 25 inches", this);//was 21
+
     }
 
     public void aroundFoundation() {
