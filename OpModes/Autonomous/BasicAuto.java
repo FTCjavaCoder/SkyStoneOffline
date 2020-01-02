@@ -1281,8 +1281,22 @@ public class BasicAuto extends BasicOpMode {
             Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -12, (-10 * sideColor)*h, "backup", this);
         }
         Billy.IMUDriveRotate(-90*sideColor, "rotate parallel to wall", this);
-        if(sideColor == 1) {haveBlueFoundation = false;}
-        if(sideColor == -1) {haveRedFoundation = false;}
+
+        // release foundation from gripper
+        Billy.servoFoundationL.setPosition(0.10);
+        Billy.servoFoundationR.setPosition(0.90);
+
+        if(testModeActive) {
+            if(sideColor == 1) {
+
+                haveBlueFoundation = false;
+            }
+            if(sideColor == -1) {
+
+                haveRedFoundation = false;
+            }
+        }
+
         Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -6, -90*sideColor, "backup to clear foundation", this);
         Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (24-insideOutside)*sideColor, -90*sideColor, "align to inside or outside", this);
         /* Needed to change the Right/Left to be 24-insideOutside since robot alings on outside
