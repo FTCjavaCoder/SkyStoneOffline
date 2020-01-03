@@ -2,8 +2,8 @@ package Skystone_14999.OpModes.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-//import com.qualcomm.robotcore.hardware.DcMotor;
-import TestOpModesOffline.DcMotor;//ADDED AND COMMENTED OUT ABOVE FOR OFFLINE
+import com.qualcomm.robotcore.hardware.DcMotor;
+//import TestOpModesOffline.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -18,7 +18,6 @@ import java.util.List;
 
 import Skystone_14999.HarwareConfig.HardwareBilly;
 import Skystone_14999.OpModes.BasicOpMode;
-import TestOpModesOffline.FieldConfiguration;
 
 @Autonomous(name="BasicAuto", group="Autonomous")
 @Disabled
@@ -43,6 +42,10 @@ public class BasicAuto extends BasicOpMode {
     public double extraFwdToBlock = 0;
 
     public enum autoChoice {SkyStoneOutside, SkyStoneInside, SkyStoneOutsideUnmoved, SkyStoneInsideUnmoved}
+
+    private static final float mmPerInch        = 25.4f;
+
+    public double stoneYLocation;
 
     //Define all double variables
     public double start = 0;//timer variable to use for setting waits in the code
@@ -457,30 +460,126 @@ public class BasicAuto extends BasicOpMode {
         if(sideColor == 1) {
             if(stonePos.equals("Left")) {
 
-                stoneSideways = -14;// was -12
+                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
             }
             if(stonePos.equals("Center")) {
 
-                stoneSideways = -6;// was -4
+                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
             }
             if(stonePos.equals("Right")) {
 
-                stoneSideways = 5;// was 8
+                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
             }
         }
 
         if(sideColor == -1) {
             if(stonePos.equals("Right")) {
 
-                stoneSideways = -14;// was -12
+                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
             }
             if(stonePos.equals("Center")) {
 
-                stoneSideways = -6;// was -4
+                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
             }
             if(stonePos.equals("Left")) {
 
-                stoneSideways = 5;// was 8
+                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
+            }
+        }
+        telemetry.addData("SkystonePos:", stonePos);
+        telemetry.addData("sideways to Skystone:", stoneSideways);
+//        pressAToContinue();
+
+    }
+
+    public void vuforiaStoneLocateInches() {
+
+        OpenGLMatrix pose = null;
+        VectorF translation = null;
+        double degreesToTurn = 0;
+
+        telemetry.update();
+
+        targetsSkyStone.activate();
+
+        start = runtime.time();
+        while ((runtime.time() - start < 2) && opModeIsActive()) {
+            for (VuforiaTrackable trackable : allTrackables) {
+                if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                    telemetry.addData("Visible Target", trackable.getName());
+
+                    pose = ((VuforiaTrackableDefaultListener)trackable.getListener()).getPose();
+                    if (pose != null) {
+                        translation = pose.getTranslation();
+                        telemetry.addData(trackable.getName() + "-Translation", translation);
+                        degreesToTurn = Math.toDegrees(Math.atan2(translation.get(0), translation.get(1)));
+                        telemetry.addData(trackable.getName() + "-Degrees", degreesToTurn);
+
+                        if ((translation.get(1) / mmPerInch) >= ((100/mmPerInch) + cons.adjustVuforiaPhone)) {
+                            telemetry.addData("Skystone status", "Left");// was RIGHT for camera on robot left
+                            stonePos = "Left";
+                            stoneSelect = 0;
+                        }
+                        if ((translation.get(1) / mmPerInch) < ((100/mmPerInch) + cons.adjustVuforiaPhone) && (translation.get(1) /mmPerInch) >  ((-100/mmPerInch) + cons.adjustVuforiaPhone)) {
+                            telemetry.addData("Skystone status", "CENTER");
+                            stonePos = "Center";
+                            stoneSelect = 1;
+                        }
+                        if ((translation.get(1) / mmPerInch) <= ((-100/mmPerInch) + cons.adjustVuforiaPhone)) {
+                            telemetry.addData("Skystone status", "Right");// was LEFT for camera on robot left
+                            stonePos = "Right";
+                            stoneSelect = 2;
+                        }
+                        telemetry.addData("translation of stone INCHES", (translation.get(1) / mmPerInch));
+                        telemetry.update();
+                        stoneYLocation = (translation.get(1) / mmPerInch);
+                    }
+                }
+
+            }
+
+        }
+        if(stonePos.equals("Unknown") || stoneSelect == -1) /*NOT Visible*/ {
+            telemetry.addData("Skystone status", "Not Visible: Left");// was RIGHT for camera on robot left
+            stonePos = "Left";
+            stoneSelect = 0;
+            telemetry.update();
+        }
+
+        telemetry.addData("SkystonePos", stonePos);
+        telemetry.addData("Skystone Select", stoneSelect);
+        telemetry.addData("Skystone Y Location", stoneYLocation);
+//        pressAToContinue();
+
+        targetsSkyStone.deactivate();
+
+        if(sideColor == 1) {
+            if(stonePos.equals("Left")) {
+
+                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
+            }
+            if(stonePos.equals("Center")) {
+
+                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
+            }
+            if(stonePos.equals("Right")) {
+
+                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
+            }
+        }
+
+        if(sideColor == -1) {
+            if(stonePos.equals("Right")) {
+
+                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
+            }
+            if(stonePos.equals("Center")) {
+
+                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
+            }
+            if(stonePos.equals("Left")) {
+
+                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
             }
         }
         telemetry.addData("SkystonePos:", stonePos);
@@ -494,17 +593,17 @@ public class BasicAuto extends BasicOpMode {
         if(sideColor == 1) {
             if(stoneSelect == 0) {
 
-                stoneSideways = -14;// was -12
+                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
                 stonePos = "Left";
             }
             if(stoneSelect == 1) {
 
-                stoneSideways = -6;// was -4
+                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
                 stonePos = "Center";
             }
             if(stoneSelect == 2) {
 
-                stoneSideways = 5;// was 8
+                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
                 stonePos = "Right";
             }
         }
@@ -512,17 +611,17 @@ public class BasicAuto extends BasicOpMode {
         if(sideColor == -1) {
             if(stoneSelect == 0) {
 
-                stoneSideways = -14;// was -12
+                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
                 stonePos = "Right";
             }
             if(stoneSelect == 1) {
 
-                stoneSideways = -6;// was -4
+                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
                 stonePos = "Center";
             }
             if(stoneSelect == 2) {
 
-                stoneSideways = 5;// was 8
+                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
                 stonePos = "Left";
             }
         }
@@ -1020,7 +1119,7 @@ public class BasicAuto extends BasicOpMode {
 
 //        pressAToContinue();
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack,-8, -90 * sideColor, "Left 8 inches",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -cons.skystoneExtraBack, -90 * sideColor, "Left 8 inches",this);
 
 //        pressAToContinue();
 
@@ -1057,7 +1156,7 @@ public class BasicAuto extends BasicOpMode {
 
 //        pressAToContinue();
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack,8 , -90 * sideColor, "Right 8",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, cons.skystoneExtraBack, -90 * sideColor, "Right 8 inches",this);
 
 //        pressAToContinue();
 
@@ -1093,7 +1192,7 @@ public class BasicAuto extends BasicOpMode {
 
     public void twoStonePark() {
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,-18 * sideColor, -180 * sideColor, "Left 10 inches",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,-22 * sideColor, -180 * sideColor, "Left 10 inches",this);
 
     }
 

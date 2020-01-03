@@ -46,7 +46,13 @@ public class Constants {
 
     public double dropStoneForward = 35;
     public double foundationExtraFwd = 0;
-    public double foundationExtraSideways = 0;
+
+    public double doRotateMethod = 0;
+
+    public double skystoneExtraSideways = 0;
+    public double skystoneExtraStoneGrab = 0;
+
+    public double adjustVuforiaPhone = 0;
 
     public final double ROBOT_INCH_TO_MOTOR_DEG = 360 / (3.875 * 3.14159); // units deg/inch - 360 deg. / wheel circumference (Wheel diameter x pi)
     public final int NUMBER_OF_JACK_STAGES = 3;// ASSUMING 3 PAIRS OF PIECES PER SIDE
@@ -113,7 +119,13 @@ public class Constants {
 
         pHM.put("foundationExtraFwd", new ParameterHM(0, ParameterHM.instanceType.distanceInches));// For different positions of Foundation allowing us to still use SkystoneInside
 
-        pHM.put("foundationExtraSideways", new ParameterHM(0, ParameterHM.instanceType.distanceInches));// For different positions of Foundation allowing us to still use SkystoneInside
+        pHM.put("doRotateMethod", new ParameterHM(0, ParameterHM.instanceType.toleranceCounts));// set to 1 to use IMURotate at the end of each IMUFwdRight move
+
+        pHM.put("skystoneExtraSideways", new ParameterHM(0, ParameterHM.instanceType.distanceInches));//
+
+        pHM.put("skystoneExtraStoneGrab", new ParameterHM(0, ParameterHM.instanceType.distanceInches));//
+
+        pHM.put("adjustVuforiaPhone", new ParameterHM(0, ParameterHM.instanceType.distanceInches));// For different positions of phone to adjust values Vuforia uses to determine Left, Center, or Right
 
     }// Define initial values for HashMap parameters
 
@@ -169,11 +181,18 @@ public class Constants {
             if(s.equals("foundationExtraFwd")) {
                 foundationExtraFwd = pHM.get(s).value;
             }
-            if(s.equals("foundationExtraSideways")) {
-                foundationExtraSideways = pHM.get(s).value;
+            if(s.equals("doRotateMethod")) {
+                doRotateMethod = pHM.get(s).value;
             }
-
-
+            if(s.equals("skystoneExtraSideways")) {
+                skystoneExtraSideways = pHM.get(s).value;
+            }
+            if(s.equals("skystoneExtraStoneGrab")) {
+                skystoneExtraStoneGrab = pHM.get(s).value;
+            }
+            if(s.equals("adjustVuforiaPhone")) {
+                adjustVuforiaPhone = pHM.get(s).value;
+            }
 
         }
     }
