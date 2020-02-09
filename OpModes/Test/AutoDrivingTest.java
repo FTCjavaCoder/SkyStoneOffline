@@ -1,6 +1,7 @@
 package Skystone_14999.OpModes.Test;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -12,7 +13,7 @@ import Skystone_14999.HarwareConfig.HardwareBilly;
 import Skystone_14999.OpModes.Autonomous.BasicAuto;
 
 @Autonomous(name="Auto Driving Test", group="Test")
-
+//@Disabled
 public class AutoDrivingTest extends BasicAuto {
 
     @Override
@@ -33,7 +34,7 @@ public class AutoDrivingTest extends BasicAuto {
 //        foundationPosChange = 0;// 0 for moved, 26 for unmoved Foundation.
 //        insideOutside = 0;// 0 for Inside, 24 for Outside
 
-        initializeMiniBot();
+        initialize();
 
         waitForStart();
 
@@ -55,8 +56,8 @@ public class AutoDrivingTest extends BasicAuto {
         pressAToContinue();
         Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, -60, -90, "IMU Left 60 Inches", this);
 
-        pressAToContinue();
-        Billy.IMUDriveRotate(0,"Rotate 90 deg CW", this);
+//        pressAToContinue();
+//        Billy.IMUDriveRotate(0,"Rotate 90 deg CW", this);
 
 //        Billy.driveGeneralPower(HardwareBilly.moveDirection.FwdBack, 60, cons.pHM.get("drivePowerLimit").value, cons.pHM.get("drivePowerMinimum").value, "Forward 60 Inches", this);
 //

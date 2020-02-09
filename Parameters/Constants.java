@@ -44,15 +44,20 @@ public class Constants {
 
 //    public final double TURN_POWER =  0.40;
 
-    public double dropStoneForward = 35;
-    public double foundationExtraFwd = 0;
+    public double forwardFirstMove = 21;// was 13
+    public double skystoneExtraBack = 8;
 
     public double doRotateMethod = 0;
 
     public double skystoneExtraSideways = 0;
-    public double skystoneExtraStoneGrab = 0;
+    public double skystoneExtraStoneGrab = -1;
 
     public double adjustVuforiaPhone = 0;
+
+    public double tensorFlowMinimumConfidence = 0.5;
+
+    public double sideGrabSkystone = 13;
+    public double sidePullGrabSkystone = 6;
 
     public final double ROBOT_INCH_TO_MOTOR_DEG = 360 / (3.875 * 3.14159); // units deg/inch - 360 deg. / wheel circumference (Wheel diameter x pi)
     public final int NUMBER_OF_JACK_STAGES = 3;// ASSUMING 3 PAIRS OF PIECES PER SIDE
@@ -62,7 +67,7 @@ public class Constants {
     // DERIVATION alpha = 2*AL/D; AL = arc length = wheel travel in inches, D = wheel diameter, alpha = wheel angle in radians
     // AL is input so conversion = 2/D * 180/pi (convert to degrees
     // alpha = AL * (360 / (D*pi))
-    public final int DEGREES_TO_COUNTS = 1440 / 360; // units counts/degree - based on 1440 per 1 revolution
+    public double DEGREES_TO_COUNTS = (1440.0/360.0) * (40.0/60.0); // units counts/degree - based on 1440 per 1 revolution
     public final double ROBOT_DEG_TO_WHEEL_INCH = 16.904807 * 3.14159 / 360;//NR wheel center to center 16.904807// units of inch/degree -- Robot rotation circumference [(wheel base (diagonal)] * pi/360 deg
     // DERIVATION AL = theta * RTD/2; AL = arc length = wheel travel in inches, RTD = robot turning diameter, theta = robot angle in radians
     // theta is input so conversion = RTD/2 * pi/180 (convert input in degrees to radians)
@@ -74,10 +79,14 @@ public class Constants {
      */
 
     public final double adjForward = 0.964;// may simply be the difference between the two robots wheel diameters
-    public final double adjRotate = 1.236;//
+    public final double adjRotate = 1.236;//NOT used because of using IMU to rotate to angle
     public final double adjRight = 1.079;//
 
-    public static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
+    public final double inchesPerPixel = 24 / 1280;// was 38 || inches per pixel for Tensor Flow to relate to vuforia zones
+
+    public final double distanceFromStones = (48 - 16) - forwardFirstMove;
+
+    public static VuforiaLocalizer.CameraDirection CAMERA_CHOICE = FRONT;// was BACK
     public static final String VUFORIA_KEY = " AUtTfjH/////AAAAGalBbST5Vkv8kqIoszZrsYOCBYcUVlFwYJ2rvrvVgm4ie/idQYx2x++SWi3UMEJnuP7Zww+cqOgyLepotRs9ppGxpCDcintIz0pIixMr+bievjJUDzdn0PyAJ6QUZK3xzoqDkTY1R99qvRORmTTqCx2/rGfYPlcOpdL5oWdhQsUatHyneF/eiWGBincPqBx3JfVwZnscF/B7J+u76YA4VTWLl8bl3iu26IYXMZE0zi7Pk+s9/pRQCCrLcxsvns4ouiSg3n61Z+jv8aS6y9ncwDdg0nm/XwDeiIrworkIPcPTW73LKpzX/63C1HprikXUJ+fm1eAkCfNy06n9SNTq20jxc7NXtGVUoE+WbNGmE4yb ";
 
 
@@ -89,13 +98,13 @@ public class Constants {
 
         pHM.put("drivePowerLimit", new ParameterHM( 1.0, ParameterHM.instanceType.powerLimit));// was 0.75
 
-        pHM.put("drivePowerMinimum", new ParameterHM( 0.1, ParameterHM.instanceType.powerLimit));//was 0.2
+        pHM.put("drivePowerMinimum", new ParameterHM( 0.066, ParameterHM.instanceType.powerLimit));// was 0.1
 
         pHM.put("rotatePowerLimit", new ParameterHM(1.0, ParameterHM.instanceType.powerLimit));// was 0.75
 
-        pHM.put("powerGain", new ParameterHM(0.2, ParameterHM.instanceType.powerLimit));// new
+        pHM.put("powerGain", new ParameterHM(0.1, ParameterHM.instanceType.powerLimit));// was 0.2
 
-        pHM.put("rotatePowerGain", new ParameterHM(0.02, ParameterHM.instanceType.powerLimit));// was 0.05
+        pHM.put("rotatePowerGain", new ParameterHM(0.01, ParameterHM.instanceType.powerLimit));// was 0.02
 
         pHM.put("IMURotateTol", new ParameterHM(1.0, ParameterHM.instanceType.rotationDegrees));// was 2.0
 
@@ -109,23 +118,29 @@ public class Constants {
 
         pHM.put("teleOpRotatePowerLimit", new ParameterHM(1.0, ParameterHM.instanceType.powerLimit));// was 0.40
 
-        pHM.put("jackPowerLimit", new ParameterHM(0.75, ParameterHM.instanceType.powerLimit));
+        pHM.put("jackPowerLimit", new ParameterHM(1.0, ParameterHM.instanceType.powerLimit));// was 0.75
 
-        pHM.put("slidePowerLimit", new ParameterHM(0.40, ParameterHM.instanceType.powerLimit));
+        pHM.put("slidePowerLimit", new ParameterHM(0.40, ParameterHM.instanceType.powerLimit));// was 0.40
 
         pHM.put("moveTol", new ParameterHM(30, ParameterHM.instanceType.toleranceCounts));// was !! 8 !!
 
-        pHM.put("dropStoneForward", new ParameterHM(35, ParameterHM.instanceType.distanceInches));// For crossDropStonePark method
+        pHM.put("forwardFirstMove", new ParameterHM(21, ParameterHM.instanceType.distanceInches));// was 13 For forward before Vuforia in 2 stone
 
-        pHM.put("foundationExtraFwd", new ParameterHM(0, ParameterHM.instanceType.distanceInches));// For different positions of Foundation allowing us to still use SkystoneInside
+        pHM.put("skystoneExtraBack", new ParameterHM(0, ParameterHM.instanceType.distanceInches));// For different backup distance to get to second Skystone
 
         pHM.put("doRotateMethod", new ParameterHM(0, ParameterHM.instanceType.toleranceCounts));// set to 1 to use IMURotate at the end of each IMUFwdRight move
 
         pHM.put("skystoneExtraSideways", new ParameterHM(0, ParameterHM.instanceType.distanceInches));//
 
-        pHM.put("skystoneExtraStoneGrab", new ParameterHM(0, ParameterHM.instanceType.distanceInches));//
+        pHM.put("skystoneExtraStoneGrab", new ParameterHM(-2, ParameterHM.instanceType.distanceInches));// was 0 and unused to move more or less when pulling stone out
 
         pHM.put("adjustVuforiaPhone", new ParameterHM(0, ParameterHM.instanceType.distanceInches));// For different positions of phone to adjust values Vuforia uses to determine Left, Center, or Right
+
+        pHM.put("tensorFlowMinimumConfidence", new ParameterHM(0.5, ParameterHM.instanceType.powerLimit));// For adjusting TensorFlow confidence level
+
+        pHM.put("sideGrabSkystone", new ParameterHM(14, ParameterHM.instanceType.distanceInches));// was 9 For forward before Vuforia in 2 stone
+
+        pHM.put("sidePullGrabSkystone", new ParameterHM(10, ParameterHM.instanceType.distanceInches));// For all Pull/Grab of stone after initial grab
 
     }// Define initial values for HashMap parameters
 
@@ -175,11 +190,11 @@ public class Constants {
             if(s.equals("moveTol")) {
                 MOVE_TOL = pHM.get(s).integerParameter();
             }
-            if(s.equals("dropStoneForward")) {
-                dropStoneForward = pHM.get(s).value;
+            if(s.equals("forwardFirstMove")) {
+                forwardFirstMove = pHM.get(s).value;
             }
-            if(s.equals("foundationExtraFwd")) {
-                foundationExtraFwd = pHM.get(s).value;
+            if(s.equals("skystoneExtraBack")) {
+                skystoneExtraBack = pHM.get(s).value;
             }
             if(s.equals("doRotateMethod")) {
                 doRotateMethod = pHM.get(s).value;
@@ -192,6 +207,15 @@ public class Constants {
             }
             if(s.equals("adjustVuforiaPhone")) {
                 adjustVuforiaPhone = pHM.get(s).value;
+            }
+            if(s.equals("tensorFlowMinimumConfidence")) {
+                tensorFlowMinimumConfidence = pHM.get(s).value;
+            }
+            if(s.equals("sideGrabSkystone")) {
+                sideGrabSkystone = pHM.get(s).value;
+            }
+            if(s.equals("sidePullGrabSkystone")) {
+                sidePullGrabSkystone = pHM.get(s).value;
             }
 
         }
@@ -207,20 +231,20 @@ public class Constants {
             for(String s : pHM.keySet()) {
 
                 osw.write(s + "\n");
-                om.telemetry.addData("Parameter Name", "%s", s);
+//                om.telemetry.addData("Parameter Name", "%s", s);
                 osw.write(pHM.get(s).value + "\n");
-                om.telemetry.addData("Value", "%.2f", pHM.get(s).value);
+//                om.telemetry.addData("Value", "%.2f", pHM.get(s).value);
                 osw.write(pHM.get(s).paramType + "\n");
-                om.telemetry.addData("Type", "%s", pHM.get(s).paramType);
+//                om.telemetry.addData("Type", "%s", pHM.get(s).paramType);
                 osw.write(pHM.get(s).hasRange + "\n");
-                om.telemetry.addData("Range?", "%s", pHM.get(s).hasRange);
+//                om.telemetry.addData("Range?", "%s", pHM.get(s).hasRange);
                 osw.write(pHM.get(s).min + "\n");
-                om.telemetry.addData("Min", "%.2f", pHM.get(s).min);
+//                om.telemetry.addData("Min", "%.2f", pHM.get(s).min);
                 osw.write(pHM.get(s).max + "\n");
-                om.telemetry.addData("Max", "%.2f", pHM.get(s).max);
+//                om.telemetry.addData("Max", "%.2f", pHM.get(s).max);
                 osw.write(pHM.get(s).increment + "\n");
-                om.telemetry.addData("Increment", "%.2f", pHM.get(s).increment);
-                om.telemetry.update();
+//                om.telemetry.addData("Increment", "%.2f", pHM.get(s).increment);
+//                om.telemetry.update();
             }
 
             osw.close();
@@ -280,14 +304,14 @@ public class Constants {
 
                 om.fileWasRead = true;
 
-                om.telemetry.addData("Parameter Name", "%s", s);
-                om.telemetry.addData("Value", "%.2f", v);
-                om.telemetry.addData("Type", "%s", t);
-                om.telemetry.addData("Range?", "%s", hr);
-                om.telemetry.addData("Min", "%.2f", min);
-                om.telemetry.addData("Max", "%.2f", max);
-                om.telemetry.addData("Increment", "%.2f", inc);
-                om.telemetry.addLine("/////////////////////////////");
+                om.telemetry.addData("Parameter", "%s = %.2f", s, v);
+//                om.telemetry.addData("Value", "%.2f", v);
+//                om.telemetry.addData("Type", "%s", t);
+//                om.telemetry.addData("Range?", "%s", hr);
+//                om.telemetry.addData("Min", "%.2f", min);
+//                om.telemetry.addData("Max", "%.2f", max);
+//                om.telemetry.addData("Increment", "%.2f", inc);
+                om.telemetry.addLine("---------------------------------");
 
                 om.idle();
             }

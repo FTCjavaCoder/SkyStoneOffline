@@ -3,17 +3,17 @@ package Skystone_14999.OpModes.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
-@Autonomous(name="Double SkyStone Drop Park Inside Blue", group="Autonomous")
+@Autonomous(name="Double SkyStone Inch DP In Red", group="Autonomous")
 
-public class DoubleSkyStoneDP_InB extends BasicAuto {
+public class DoubleSkyStoneInchDP_InR extends BasicAuto {
 
     @Override
     public void runOpMode() {
+
+        telemetry.addLine("NOT READY DON'T PRESS PLAY");
+        telemetry.update();
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
@@ -29,9 +29,9 @@ public class DoubleSkyStoneDP_InB extends BasicAuto {
 
         foundationPosChange = 0;// 0 for moved, 26 for unmoved Foundation.
         insideOutside = 0;// 0 for Inside, 24 for Outside
-        sideColor = 1;// + for Blue, - for Red, KEEP BLUE
+        sideColor = -1;// + for Blue, - for Red, KEEP RED
 
-        initializeMiniBot();
+        initialize();
 
         waitForStart();
 
@@ -41,7 +41,7 @@ public class DoubleSkyStoneDP_InB extends BasicAuto {
 
         fwdToTwoStone();
 
-        vuforiaStoneLocate();
+        vuforiaStoneLocateInches();
 
         goToStone();
 
@@ -53,8 +53,9 @@ public class DoubleSkyStoneDP_InB extends BasicAuto {
 
         twoStonePark();
 
+        telemetry.addData("stoneYLocation","(%.2f)", stoneYLocation);
         telemetry.addLine("OpMode Complete");
         telemetry.update();
-        sleep(500);
+        sleep(2000);
     }
 }
