@@ -101,25 +101,26 @@ public class HardwareBilly
         if(tm) {
 
             // Define and Initialize Motors
-//            frontLeft = new DcMotor();
-//            frontRight = new DcMotor();
-//            backLeft = new DcMotor();
-//            backRight = new DcMotor();
-//            jack = new DcMotor();
-//            slide = new DcMotor();
-//
-//            // Define and initialize ALL installed servos.
-//            servoFoundationL = new Servo();
-//            servoFoundationR = new Servo();
-//
-//            stoneServoLeft = new Servo();
-//            stoneServoRight = new Servo();
-////        servoCapstoneRelease = new Servo();
-//            stoneServoArm = new Servo();
-//
-//            imu = new TestOpModesOffline.BNO055IMU();
-//            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();//Need help on enclosing class
-//            imu.initialize(parameters);
+            frontLeft = new DcMotor();
+            frontRight = new DcMotor();
+            backLeft = new DcMotor();
+            backRight = new DcMotor();
+            jack = new DcMotor();
+            slide = new DcMotor();
+
+            // Define and initialize ALL installed servos.
+            servoFoundationL = new Servo();
+            servoFoundationR = new Servo();
+
+            stoneServoLeft = new Servo();
+            stoneServoRight = new Servo();
+//        servoCapstoneRelease = new Servo();
+            armServoBlue = new Servo();
+            armServoRed = new Servo();
+
+            imu = new TestOpModesOffline.BNO055IMU();
+            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();//Need help on enclosing class
+            imu.initialize(parameters);
 
         }
         else {
@@ -174,24 +175,26 @@ public class HardwareBilly
         if(tm) {
 
             // Define and Initialize Motors
-//            frontLeft = new DcMotor();
-//            frontRight = new DcMotor();
-//            backLeft = new DcMotor();
-//            backRight = new DcMotor();
-//            jack = new DcMotor();
-//            slide = new DcMotor();
-//
-//            // Define and initialize ALL installed servos.
-//            servoFoundationL = new Servo();
-//            servoFoundationR = new Servo();
-//
-//            stoneServoLeft = new Servo();
-//            stoneServoRight = new Servo();
-////        servoCapstoneRelease = new Servo();
-//            stoneServoArm = new Servo();
-//            imu = new TestOpModesOffline.BNO055IMU();
-//            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();//Need help on enclosing class
-//            imu.initialize(parameters);
+            frontLeft = new DcMotor();
+            frontRight = new DcMotor();
+            backLeft = new DcMotor();
+            backRight = new DcMotor();
+            jack = new DcMotor();
+            slide = new DcMotor();
+
+            // Define and initialize ALL installed servos.
+            servoFoundationL = new Servo();
+            servoFoundationR = new Servo();
+
+            stoneServoLeft = new Servo();
+            stoneServoRight = new Servo();
+//        servoCapstoneRelease = new Servo();
+            armServoBlue = new Servo();
+            armServoRed = new Servo();
+
+            imu = new TestOpModesOffline.BNO055IMU();
+            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();//Need help on enclosing class
+            imu.initialize(parameters);
 
         }
         else {

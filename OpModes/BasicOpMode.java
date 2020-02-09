@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import Skystone_14999.HarwareConfig.HardwareBilly;
 import Skystone_14999.Parameters.Constants;
+import TestOpModesOffline.Telemetry;
 
 public class BasicOpMode extends LinearOpMode {
 
@@ -27,7 +28,7 @@ public class BasicOpMode extends LinearOpMode {
 
     public boolean testModeActive = false;
 
-//    public Telemetry telemetry = new Telemetry();
+    public Telemetry telemetry = new Telemetry();
 
     public BasicOpMode() {
 
