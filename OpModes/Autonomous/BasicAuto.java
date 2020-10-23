@@ -2,8 +2,10 @@ package Skystone_14999.OpModes.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.hardware.DcMotor;
-//import TestOpModesOffline.DcMotor;
+//import com.qualcomm.robotcore.hardware.DcMotor;
+import Skystone_14999.OpModes.Autonomous.PurePursuit.PursuitLines;
+import Skystone_14999.OpModes.Autonomous.PurePursuit.PursuitPath;
+import TestOpModesOffline.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -65,6 +67,11 @@ public class BasicAuto extends BasicOpMode {
     public boolean haveBlueSkyStone2 = false;
     public boolean haveRedSkyStone1 = false;
     public boolean haveRedSkyStone2 = false;
+
+    public PursuitPath path = new PursuitPath();
+    public ArrayList<PursuitLines> lines = new ArrayList<>();
+
+
 /** COMMENTED OUT FOR EXPERIMENTAL CODE
 
  //********** Added from OfflineOpModeLibs to BasicAuto forOfflineOpModeRunFile ******************

@@ -1,16 +1,20 @@
 
 package Skystone_14999.HarwareConfig;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
-import com.qualcomm.robotcore.hardware.DcMotor;
-//import TestOpModesOffline.BNO055IMU;
-//import TestOpModesOffline.JustLoggingAccelerationIntegrator;
-//import TestOpModesOffline.DcMotor;
-//import TestOpModesOffline.Servo;
+//import com.qualcomm.hardware.bosch.BNO055IMU;
+//import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+//import com.qualcomm.robotcore.hardware.DcMotor;
+import Skystone_14999.OpModes.Autonomous.PurePursuit.PursuitLines;
+import Skystone_14999.OpModes.Autonomous.PurePursuit.PursuitMath;
+import Skystone_14999.OpModes.Autonomous.PurePursuit.PursuitPoint;
+import TestOpModesOffline.BNO055IMU;
+import TestOpModesOffline.FieldLocation;
+import TestOpModesOffline.JustLoggingAccelerationIntegrator;
+import TestOpModesOffline.DcMotor;
+import TestOpModesOffline.Servo;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
+//import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -18,6 +22,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
+import java.util.ArrayList;
 
 import Skystone_14999.OpModes.Autonomous.BasicAuto;
 import Skystone_14999.OpModes.BasicOpMode;
@@ -89,6 +95,26 @@ public class HardwareBilly
     public int priorPos[] = new int[4];
     public double distanceTraveled = 0;
 
+    public int flPrevious;
+    public int frPrevious;
+    public int brPrevious;
+    public int blPrevious;
+
+    public double robotAngle;
+    public double robotX;
+    public double robotY;
+    public double fieldX;
+    public double fieldY;
+    public double fieldAngle;
+
+    public double targetX;
+    public double targetY;
+    double targetHeading;
+
+    public FieldLocation robotLocation = new FieldLocation(-72,-72,0);
+    public PursuitPoint targetPoint = new PursuitPoint(-50,-60);
+
+
     /* local OpMode members. */
     public Orientation angles;
 
@@ -102,26 +128,26 @@ public class HardwareBilly
         // Save reference to Hardware map
         if(tm) {
 
-            // Define and Initialize Motors
-//            frontLeft = new DcMotor();
-//            frontRight = new DcMotor();
-//            backLeft = new DcMotor();
-//            backRight = new DcMotor();
-//            jack = new DcMotor();
-//            slide = new DcMotor();
-//
-//            // Define and initialize ALL installed servos.
-//            servoFoundationL = new Servo();
-//            servoFoundationR = new Servo();
-//
-//            stoneServoLeft = new Servo();
-//            stoneServoRight = new Servo();
-////        servoCapstoneRelease = new Servo();
-//            stoneServoArm = new Servo();
-//
-//            imu = new TestOpModesOffline.BNO055IMU();
-//            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();//Need help on enclosing class
-//            imu.initialize(parameters);
+//             Define and Initialize Motors
+            frontLeft = new DcMotor();
+            frontRight = new DcMotor();
+            backLeft = new DcMotor();
+            backRight = new DcMotor();
+            jack = new DcMotor();
+            slide = new DcMotor();
+
+            // Define and initialize ALL installed servos.
+            servoFoundationL = new Servo();
+            servoFoundationR = new Servo();
+
+            stoneServoLeft = new Servo();
+            stoneServoRight = new Servo();
+//        servoCapstoneRelease = new Servo();
+            stoneServoArm = new Servo();
+
+            imu = new TestOpModesOffline.BNO055IMU();
+            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();//Need help on enclosing class
+            imu.initialize(parameters);
 
             DRIVE_POWER_LIMIT = cons.DRIVE_POWER_LIMIT;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit
             ROTATE_POWER_LIMIT = cons.ROTATE_POWER_LIMIT;//clockwise rotation power/speed to be converted to individual motor powers/speeds
@@ -210,29 +236,29 @@ public class HardwareBilly
 
     }
 
-    public void initMiniBot(HardwareMap ahwMap, boolean tm, Constants cons) {
-
+    public boolean initMiniBot(HardwareMap ahwMap, boolean tm, Constants cons) {
+        boolean imuStatus = false;
         if(tm) {
 
             // Define and Initialize Motors
-//            frontLeft = new DcMotor();
-//            frontRight = new DcMotor();
-//            backLeft = new DcMotor();
-//            backRight = new DcMotor();
-//            jack = new DcMotor();
-//            slide = new DcMotor();
-//
-//            // Define and initialize ALL installed servos.
-//            servoFoundationL = new Servo();
-//            servoFoundationR = new Servo();
-//
-//            stoneServoLeft = new Servo();
-//            stoneServoRight = new Servo();
-////        servoCapstoneRelease = new Servo();
-//            stoneServoArm = new Servo();
-//            imu = new TestOpModesOffline.BNO055IMU();
-//            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();//Need help on enclosing class
-//            imu.initialize(parameters);
+            frontLeft = new DcMotor();
+            frontRight = new DcMotor();
+            backLeft = new DcMotor();
+            backRight = new DcMotor();
+            jack = new DcMotor();
+            slide = new DcMotor();
+
+            // Define and initialize ALL installed servos.
+            servoFoundationL = new Servo();
+            servoFoundationR = new Servo();
+
+            stoneServoLeft = new Servo();
+            stoneServoRight = new Servo();
+//        servoCapstoneRelease = new Servo();
+            stoneServoArm = new Servo();
+            imu = new TestOpModesOffline.BNO055IMU();
+            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();//Need help on enclosing class
+            imu.initialize(parameters);
 
             DRIVE_POWER_LIMIT = cons.DRIVE_POWER_LIMIT;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit
             ROTATE_POWER_LIMIT = cons.ROTATE_POWER_LIMIT;//clockwise rotation power/speed to be converted to individual motor powers/speeds
@@ -284,9 +310,9 @@ public class HardwareBilly
             // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
             // and named "imu".
             imu = hwMap.get(BNO055IMU.class, "imu");
-            imu.initialize(parameters);
+            imuStatus = imu.initialize(parameters);
 
-            DRIVE_POWER_LIMIT = cons.DRIVE_POWER_LIMIT;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit
+            DRIVE_POWER_LIMIT = cons.DRIVE_POWER_LIMIT/2;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit
             ROTATE_POWER_LIMIT = cons.ROTATE_POWER_LIMIT;//clockwise rotation power/speed to be converted to individual motor powers/speeds
             DRIVE_POWER_MINIMUM = cons.DRIVE_POWER_MINIMUM;
             STEERING_POWER_LIMIT = cons.STEERING_POWER_LIMIT;
@@ -307,13 +333,13 @@ public class HardwareBilly
             skystoneExtraStoneGrab = cons.skystoneExtraStoneGrab;
             adjustVuforiaPhone = cons.adjustVuforiaPhone;
         }
+        return imuStatus;
 
     }
 
     public void initIMU(BasicOpMode om) {
 
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);//This line calls the angles from the IMU
-
         offset = angles.firstAngle; //Determine initial angle offset 
         priorAngle = offset; //set prior angle for unwrap to be initial angle 
         robotHeading = angles.firstAngle - offset; //robotHeading to be 0 degrees to start 
@@ -1159,5 +1185,201 @@ public class HardwareBilly
         stoneServoRight.setPosition(servoPos);
 
     }
+    public void drivePursuit(ArrayList<PursuitPoint> pathPoints, BasicAuto om, String step){
+        double distanceToTarget = 100;
+        double steeringPower;
+
+        int[] driveDirection = new int[4];
+        double[] setPower = new double[4];
+        double prePower[] = new double[4];
+
+        driveDirection[0] = -1;// FL
+        driveDirection[1] = +1;// FR
+        driveDirection[2] = +1;// BR
+        driveDirection[3] = -1;// BL
+        double maxLeft;
+        double maxRight;
+        double max;
+
+        boolean atEnd = false;
+        double powerLimit = DRIVE_POWER_LIMIT;
+        double radius = 12;
+
+//        robotLocation.setLocation(-30,-30,0);
+        fieldX = robotLocation.x;
+        fieldY = robotLocation.y;
+
+        robotNavigator(om);
+        om.updateIMU();
+
+        targetPoint = om.path.findPursuitPoint(pathPoints, robotLocation, radius);
+//        targetPoint.setPoint(-30,-30);
+
+        int count = 0;
+        while((count < 295) && (om.opModeIsActive() || om.testModeActive)) {
+            robotNavigator(om);
+            om.updateIMU();
+        //Follow a circle of radius 60, offset by --135 degrees
+//            double x = 60*Math.cos(count*2.0*Math.PI/250.0 - 3.0* Math.PI/4);
+//            double y = 60*Math.sin(count*2.0*Math.PI/250.0 - 3.0* Math.PI/4);
+
+        // Follow a parabola  y = a(x – h)^2 + k, where (h,k) = (0, 60), a= -.08, and x = -30 to 60
+//            double x = -40.0 + count*90.0/250.0;
+//            double y = -0.08* Math.pow((x - 0.0),2) + 60;
+
+            // Follow a pair of lines that change at (0,0)
+//            double x = -30.0 + count*80/250.0;
+////            if(x>1){x=24;}
+//            double y = x;
+//            double a = 0;
+//            if(count > 1){a = -45.0;}
+//            if(x > 0){ y = 0.5*x;a= -22.5;}
+////            else{y = (count-x)*120/250.0 -48;}
+
+
+
+//            targetPoint.setPoint(x,y);
+//            targetPoint = om.path.findPursuitPoint(pathPoints, new FieldLocation(x,y,a), radius);
+            targetPoint = om.path.findPursuitPoint(pathPoints, robotLocation, radius);
+
+
+            //navigator calculates its own angle, compare to IMU for accuracy?
+            setRobotAngle();
+            distanceToTarget = PursuitMath.findDistance(targetPoint,new PursuitPoint(robotLocation.x, robotLocation.y));
+
+            steeringPower = calcSteeringPowerIMU(targetHeading);
+
+            /**
+             * removed if statement to try new limit, then comment out new limit below
+             */
+            if (steeringPower > STEERING_POWER_LIMIT / 4){
+                powerLimit = DRIVE_POWER_LIMIT * (1 - (steeringPower - STEERING_POWER_LIMIT/4)/0.75);//was /0.75
+            }
+
+            //powerLimit = Range.clip(1 - 5*steeringPower,-DRIVE_POWER_LIMIT,DRIVE_POWER_LIMIT);
+
+            for (int i = 0; i < 4; i++) {
+
+                prePower[i] = Range.clip((distanceToTarget * driveDirection[i]) * POWER_GAIN, -powerLimit, powerLimit) + steeringPower;
+
+            }
+
+            maxLeft = Math.max(Math.abs(prePower[0]), Math.abs(prePower[3]));
+            maxRight = Math.max(Math.abs(prePower[1]), Math.abs(prePower[2]));
+            max = Math.max(maxLeft, maxRight);
+
+            if (DRIVE_POWER_LIMIT >= max) { max = 1;}
+
+            for (int i = 0; i < 4; i++) {
+                setPower[i] = Math.signum(prePower[i]) * Range.clip(Math.abs(prePower[i] / max), DRIVE_POWER_MINIMUM, DRIVE_POWER_LIMIT);
+            }
+            setMotorPowerArray(setPower);
+
+            om.telemetry.addData("Driving: ", step);
+            om.telemetry.addData("count: ", count);
+
+//            om.telemetry.addData("Motor Commands: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
+//                    targetPos[0], targetPos[1],targetPos[2],targetPos[3]);
+            om.telemetry.addData("Robot Heading: ", " Desired: %.2f, Actual: %.2f", targetHeading, robotHeading);
+            om.telemetry.addData("Robot Location: ", " Desired(X,Y): (%.2f,%.2f), Actual(X,Y): (%.2f,%.2f), IMU(X,Y): (%.2f,%.2f)",
+                    targetPoint.x,targetPoint.y, robotLocation.x, robotLocation.y,imu.robotOnField.x,imu.robotOnField.y);
+
+            om.telemetry.addData("Motor Counts: ", "FL (%d) FR (%d) BR (%d) BL (%d)",
+                    flPrevious, frPrevious, brPrevious, blPrevious);
+            om.telemetry.addData("Motor Power: ", "FL (%.2f) FR (%.2f) BR (%.2f) BL (%.2f)",
+                    setPower[0], setPower[1], setPower[2], setPower[3]);
+            om.telemetry.addData("Steering ", "Power: %.2f, Gain: %.3f", steeringPower, STEERING_POWER_GAIN);
+            om.telemetry.addData("Distance to Target: ", "%.2f", distanceToTarget);
+            om.telemetry.addLine("----------------------------------");
+            om.telemetry.update();
+            count += 1;
+
+//            om.sleep(50);
+        }
+        setMotorPower(0.0);
+
+    }
+    public void robotNavigator(BasicAuto om){
+        double factor = 1;
+
+        int flCount = frontLeft.getCurrentPosition();
+        int frCount = frontRight.getCurrentPosition();
+        int brCount = backRight.getCurrentPosition();
+        int blCount = backLeft.getCurrentPosition();
+
+        int deltaFL = flCount - flPrevious;
+        int deltaFR = frCount - frPrevious;
+        int deltaBR = brCount - brPrevious;
+        int deltaBL = blCount - blPrevious;
+
+
+        //drive motor calculations
+
+        int deltaSum = (deltaFL  + deltaFR  + deltaBR  + deltaBL)/4;
+        robotAngle += deltaSum / (om.cons.DEGREES_TO_COUNTS * om.cons.ROBOT_INCH_TO_MOTOR_DEG *
+                om.cons.ROBOT_DEG_TO_WHEEL_INCH * om.cons.adjRotate);
+
+        double robotFLBRCount = 0.707* Math.signum(deltaBR)*(Math.abs(deltaBR-deltaSum) + Math.abs(deltaFL-deltaSum))/2;
+        double robotFRBLCount = 0.707* Math.signum(deltaFR)*(Math.abs(deltaFR-deltaSum) + Math.abs(deltaBL-deltaSum))/2;
+
+        if(Math.signum(deltaFL)== Math.signum(deltaFR) && Math.signum(deltaFL)!= Math.signum(deltaBL)){
+            factor = 1/om.cons.adjRight;
+        }
+        else if(Math.signum(deltaFL)== Math.signum(deltaFR) && Math.signum(deltaFL)== Math.signum(deltaBL)) {
+            factor = 1 / om.cons.adjRotate;
+        }
+        else {
+
+            factor = 1;
+        }
+
+//Coordinate transformation to take motor drive coordinates to robot body reference frame - fixed 45 deg rotation
+        double robotXInc = factor* ((robotFRBLCount*0.707) + (robotFLBRCount*0.707))/
+                (om.cons.DEGREES_TO_COUNTS*om.cons.ROBOT_INCH_TO_MOTOR_DEG);
+        double robotYInc = -factor* ((-robotFRBLCount*0.707) + (robotFLBRCount*0.707))/
+                (om.cons.DEGREES_TO_COUNTS*om.cons.ROBOT_INCH_TO_MOTOR_DEG);
+        robotX += robotXInc;
+        robotY += robotYInc;
+
+//Coordinate transformation to take robot body coordinates to field reference frame - depends on IMU angle
+//Angle reference from field to robot is negative angle in CW = + robot frame, uses + = CCW {IMU frame & field frame}
+        double fieldXInc = (robotXInc*Math.cos(Math.toRadians(robotAngle))) -
+                (robotYInc*Math.sin(Math.toRadians(robotAngle)));//flipped sign on Ry term
+        double fieldYInc = (robotXInc*Math.sin(Math.toRadians(robotAngle))) +
+                (robotYInc*Math.cos(Math.toRadians(robotAngle)));//flipped sign on Rx term
+        fieldX += fieldXInc;
+        fieldY += fieldYInc;
+        fieldAngle = -robotAngle;//should this be + or -?
+
+        //Update robot FieldLocation for X,Y, angle
+        robotLocation.setLocation(fieldX,fieldY,fieldAngle);
+
+        flPrevious = flCount;
+        frPrevious = frCount;
+        brPrevious = brCount;
+        blPrevious = blCount;
+    }
+
+    public void setRobotAngle(){
+        double angle = -Math.atan2(targetPoint.y- robotLocation.y, targetPoint.x- robotLocation.x) * 180/Math.PI;
+        //negative sign for the change in rotation sign convention + = CW for steering
+//Need to maintain unwrapped target angle
+        double deltaAngle = angle - targetHeading;
+        if (deltaAngle > 180) {//This is IF/THEN for the unwrap routine
+            targetHeading += deltaAngle - 360;//Decrease angle for negative direction //rotation
+        } else if (deltaAngle < -180) {
+            targetHeading += deltaAngle + 360;//increase angle for positive direction //rotation 
+        } else {
+            targetHeading += deltaAngle;//No wrap happened, don't add any extra rotation
+        }
+//        if (angle > 180) {//This is IF/THEN for the unwrap routine
+//            angle -= 360;//Decrease angle for negative direction //rotation
+//        } else if (angle < -180) {
+//            angle += 360;//increase angle for positive direction //rotation 
+//        }
+//        targetHeading = angle;
+
+    }
+
 
 }

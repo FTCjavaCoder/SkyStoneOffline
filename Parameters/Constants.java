@@ -51,7 +51,7 @@ public class Constants {
 
     public double skystoneExtraSideways = 0;
     public double skystoneExtraStoneGrab = 0;
-
+    public double skystoneExtraBack = 8.0;
     public double adjustVuforiaPhone = 0;
 
     public final double ROBOT_INCH_TO_MOTOR_DEG = 360 / (3.875 * 3.14159); // units deg/inch - 360 deg. / wheel circumference (Wheel diameter x pi)
@@ -125,6 +125,8 @@ public class Constants {
 
         pHM.put("skystoneExtraStoneGrab", new ParameterHM(0, ParameterHM.instanceType.distanceInches));//
 
+        pHM.put("skystoneExtraBack", new ParameterHM(8, ParameterHM.instanceType.distanceInches));//
+
         pHM.put("adjustVuforiaPhone", new ParameterHM(0, ParameterHM.instanceType.distanceInches));// For different positions of phone to adjust values Vuforia uses to determine Left, Center, or Right
 
     }// Define initial values for HashMap parameters
@@ -190,6 +192,10 @@ public class Constants {
             if(s.equals("skystoneExtraStoneGrab")) {
                 skystoneExtraStoneGrab = pHM.get(s).value;
             }
+            if(s.equals("skystoneExtraBack")) {
+                skystoneExtraBack = pHM.get(s).value;
+            }
+
             if(s.equals("adjustVuforiaPhone")) {
                 adjustVuforiaPhone = pHM.get(s).value;
             }
