@@ -52,7 +52,6 @@ public class Constants {
     public double skystoneExtraSideways = 0;
 
     public double skystoneExtraStoneGrab = 0;
-    public double skystoneExtraBack = 8.0;
 
     public double adjustVuforiaPhone = 0;
 

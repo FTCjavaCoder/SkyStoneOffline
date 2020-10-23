@@ -184,7 +184,7 @@ public class BasicAuto extends BasicOpMode {
         stoneArmUnderBridgeRed = 0.15;// for red oriented servo
         stoneArmDownRed = 0.7;// for red oriented servo (was 0.5, could adjust servo horn)
 
-        Billy.init(hardwareMap, testModeActive);
+        Billy.init(hardwareMap, testModeActive, cons);
 
         //Motor configuration, recommend Not Changing - Set all motors to forward direction, positive = clockwise when viewed from shaft side
         Billy.frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -288,7 +288,7 @@ public class BasicAuto extends BasicOpMode {
         stoneArmUnderBridgeRed = 0.75;// for red oriented servo
         stoneArmDownRed = 0.3;// for red oriented servo (was 0.5, could adjust servo horn)
 
-        Billy.initMiniBot(hardwareMap, testModeActive);
+        Billy.initMiniBot(hardwareMap, testModeActive, cons);
 
         //Motor configuration, recommend Not Changing - Set all motors to forward direction, positive = clockwise when viewed from shaft side
         Billy.frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);

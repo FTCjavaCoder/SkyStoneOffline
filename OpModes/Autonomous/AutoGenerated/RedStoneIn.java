@@ -56,7 +56,7 @@ import Skystone_14999.OpModes.Autonomous.BasicAuto;
 			vuforiaStoneLocateOffline(stoneSelect);
 		}
 		else{
-			vuforiaStoneLocate();
+			vuforiaStoneLocateInches();
 		}
 
 		goToStone();

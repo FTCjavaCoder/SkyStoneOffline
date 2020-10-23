@@ -73,6 +73,29 @@ public class HardwareBilly
 
     int targetPos[] = new int[4];
 
+
+    public double DRIVE_POWER_LIMIT;
+    public double ROTATE_POWER_LIMIT;
+    public double DRIVE_POWER_MINIMUM;
+    public double STEERING_POWER_LIMIT;
+    public double STEERING_POWER_GAIN;
+    public double POWER_GAIN;
+    public double ROTATE_POWER_GAIN;
+    public double IMU_ROTATE_TOL;
+    public double IMU_DISTANCE_TOL;
+    public double MOVE_TOL;// tolerance for motor reaching final positions in drive methods
+    public double TELEOP_DRIVE_POWER_LIMIT;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit for teleop
+    public double TELEOP_ROTATE_POWER_LIMIT;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit for teleop
+    public double JACK_POWER_LIMIT;
+    public double SLIDE_POWER_LIMIT;
+    public double dropStoneForward;
+    public double skystoneExtraBack;
+    public double doRotateMethod;
+    public double skystoneExtraSideways;
+    public double skystoneExtraStoneGrab;
+    public double adjustVuforiaPhone;
+
+
     public enum moveDirection {FwdBack, RightLeft, Rotate}
 
     public double clockwise =0;
@@ -125,7 +148,7 @@ public class HardwareBilly
     }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap, boolean tm) {
+    public void init(HardwareMap ahwMap, boolean tm, Constants cons) {
         // Save reference to Hardware map
         if(tm) {
 
@@ -170,7 +193,7 @@ public class HardwareBilly
             TELEOP_ROTATE_POWER_LIMIT = cons.TELEOP_ROTATE_POWER_LIMIT;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit for teleop
             JACK_POWER_LIMIT = cons.JACK_POWER_LIMIT;
             SLIDE_POWER_LIMIT = cons.SLIDE_POWER_LIMIT;
-            dropStoneForward = cons.dropStoneForward;
+//            dropStoneForward = cons.dropStoneForward;
             skystoneExtraBack = cons.skystoneExtraBack;
             doRotateMethod = cons.doRotateMethod;
             skystoneExtraSideways = cons.skystoneExtraSideways;
@@ -267,7 +290,7 @@ public class HardwareBilly
             TELEOP_ROTATE_POWER_LIMIT = cons.TELEOP_ROTATE_POWER_LIMIT;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit for teleop
             JACK_POWER_LIMIT = cons.JACK_POWER_LIMIT;
             SLIDE_POWER_LIMIT = cons.SLIDE_POWER_LIMIT;
-            dropStoneForward = cons.dropStoneForward;
+//            dropStoneForward = cons.dropStoneForward;
             skystoneExtraBack = cons.skystoneExtraBack;
             doRotateMethod = cons.doRotateMethod;
             skystoneExtraSideways = cons.skystoneExtraSideways;
@@ -277,9 +300,6 @@ public class HardwareBilly
             armServoBlue = new Servo();
             armServoRed = new Servo();
 
-            imu = new TestOpModesOffline.BNO055IMU();
-            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();//Need help on enclosing class
-            imu.initialize(parameters);
 
         }
         else {
@@ -331,7 +351,7 @@ public class HardwareBilly
             TELEOP_ROTATE_POWER_LIMIT = cons.TELEOP_ROTATE_POWER_LIMIT;//chassis drive wheel (FR, FL, BR, BL) Motor power/speed limit for teleop
             JACK_POWER_LIMIT = cons.JACK_POWER_LIMIT;
             SLIDE_POWER_LIMIT = cons.SLIDE_POWER_LIMIT;
-            dropStoneForward = cons.dropStoneForward;
+//            dropStoneForward = cons.dropStoneForward;
             skystoneExtraBack = cons.skystoneExtraBack;
             doRotateMethod = cons.doRotateMethod;
             skystoneExtraSideways = cons.skystoneExtraSideways;
@@ -1459,7 +1479,7 @@ public class HardwareBilly
             setRobotAngle();
             distanceToTarget = PursuitMath.findDistance(targetPoint,new PursuitPoint(robotLocation.x, robotLocation.y));
 
-            steeringPower = calcSteeringPowerIMU(targetHeading);
+            steeringPower = calcSteeringPowerIMU(targetHeading,om);
 
             /**
              * removed if statement to try new limit, then comment out new limit below
@@ -1467,6 +1487,7 @@ public class HardwareBilly
             if (steeringPower > STEERING_POWER_LIMIT / 4){
                 powerLimit = DRIVE_POWER_LIMIT * (1 - (steeringPower - STEERING_POWER_LIMIT/4)/0.75);//was /0.75
             }
+            else {powerLimit = DRIVE_POWER_LIMIT;}
 
             //powerLimit = Range.clip(1 - 5*steeringPower,-DRIVE_POWER_LIMIT,DRIVE_POWER_LIMIT);
 
