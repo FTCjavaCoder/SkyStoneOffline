@@ -1,16 +1,16 @@
 package Skystone_14999.OpModes.TeleOp;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
+
 /**
- *
+ * I made this TeleOp because 1) I wanted to experiment with the code and 2) I don't like the current driver controls
  */
 
-@TeleOp(name="FullDrive", group="TeleOp")
-@Disabled
-public class FullDrive extends BasicTeleOp {
+@TeleOp(name="William's Teleop", group="TeleOp")
+
+public class William_Teleop extends BasicTeleOp {
 
     @Override
     public void runOpMode() {
@@ -26,17 +26,17 @@ public class FullDrive extends BasicTeleOp {
 
         Billy.initIMU(this);
 
+        Billy.armServoBlue.setPosition(0.6);
+        Billy.armServoRed.setPosition(0.15);
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
             // Set Drive Motor Power
-            Billy.drivePower(gamepad1, gamepad2, this);
-
-            // use the left/right triggers on gamepad1 to rotate the robot counter/clockwise
-            Billy.rotatePower(gamepad1, gamepad2, this);
+            Billy.williamDrivePower(gamepad1, gamepad2, this);
 
             // use the left stick on gamepad2 to raise/lower the jack
-            Billy.jackPower(gamepad1, gamepad2, this);
+            Billy.jackPowerEncoderStop(gamepad1, gamepad2, this);
 
             // use the right stick on gamepad2 to extend/retract the slide
             Billy.slidePower(gamepad1, gamepad2, this);
@@ -65,17 +65,19 @@ public class FullDrive extends BasicTeleOp {
                 sleep(300);
             }
 
+            // sets the position of the servos to 4"
+            if (gamepad2.y) {
+                servoStonePos = 1;
+                Billy.setServoPos(servoStonePos);
+                sleep(300);
+            }
+
             // sets the position of the servos to open
             if (gamepad2.b) {
                 servoStonePos = 0.15;
                 Billy.setServoPos(servoStonePos);
                 sleep(300);
             }
-
-//            if (gamepad1.right_bumper && gamepad1.b) {
-//
-//                Billy.servoCapstoneRelease.setPosition(0);
-//            }
 
             // SERVOS FOUNDATION
             if(gamepad1.dpad_up) {
@@ -90,6 +92,36 @@ public class FullDrive extends BasicTeleOp {
 
                 Billy.servoFoundationR.setPosition(0.20);
             }
+
+            // SERVOS FOUNDATION
+            if(gamepad1.dpad_left) {
+
+                Billy.armServoBlue.setPosition(1);
+                Billy.armServoRed.setPosition(0);
+            }
+
+            // Values Not determined
+            if (Math.abs(gamepad2.left_trigger) > 0) {
+
+                capstoneServoPosition -= 0.005;
+                Billy.servoCapstoneRelease.setPosition(capstoneServoPosition);//
+            }
+            if (Math.abs(gamepad2.right_trigger) > 0) {
+
+                capstoneServoPosition += 0.005;
+                Billy.servoCapstoneRelease.setPosition(capstoneServoPosition);//
+            }
+            if (gamepad2.dpad_left) {
+
+                capstoneServoPosition = 0.15;
+                Billy.servoCapstoneRelease.setPosition(capstoneServoPosition);//
+            }
+
+
+            //            if (gamepad1.right_bumper && gamepad1.b) {
+//
+//                Billy.servoCapstoneRelease.setPosition(0);
+//            }
 
             Billy.angleUnWrap();
 

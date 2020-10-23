@@ -1,16 +1,20 @@
 package Skystone_14999.OpModes.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
-@Autonomous(name="Inch Double SkyStone Drop Park Inside Red", group="Autonomous")
-
-public class InchDoubleSkyStoneDP_InR extends BasicAuto {
+@Autonomous(name="MiniBot ID SkyStone DP Inside Blue", group="Autonomous")
+@Disabled
+public class Mini_IDSkyStoneDP_InB extends BasicAuto {
 
     @Override
     public void runOpMode() {
+
+        telemetry.addLine("NOT READY DON'T PRESS PLAY");
+        telemetry.update();
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
@@ -26,7 +30,7 @@ public class InchDoubleSkyStoneDP_InR extends BasicAuto {
 
         foundationPosChange = 0;// 0 for moved, 26 for unmoved Foundation.
         insideOutside = 0;// 0 for Inside, 24 for Outside
-        sideColor = -1;// + for Blue, - for Red, KEEP RED
+        sideColor = 1;// + for Blue, - for Red, KEEP BLUE
 
         initializeMiniBot();
 

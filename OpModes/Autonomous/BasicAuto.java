@@ -7,19 +7,24 @@ import Skystone_14999.OpModes.Autonomous.PurePursuit.PursuitLines;
 import Skystone_14999.OpModes.Autonomous.PurePursuit.PursuitPath;
 import TestOpModesOffline.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+//import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import Skystone_14999.HarwareConfig.HardwareBilly;
 import Skystone_14999.OpModes.BasicOpMode;
+import TestOpModesOffline.Telemetry;
 
 @Autonomous(name="BasicAuto", group="Autonomous")
 @Disabled
@@ -33,7 +38,7 @@ public class BasicAuto extends BasicOpMode {
 
     public double extraFwd = 0;
     public double stoneSideways = 0;
-    public double sideGrabStone = 18;
+//    public double sideGrabStone = 11;// was 9 |||| was 18 {} decide how to make robo tmove forward and still grab stones
     public double foundationPosChange = 0;// 26 for unmoved Foundation, 0 for moved Foundation
     public double insideOutside = 0;// 0 for Inside, 24 for Outside
     public double foundationInOut = 0;// 0 for Inside, 26 for Outside
@@ -42,6 +47,8 @@ public class BasicAuto extends BasicOpMode {
 
     public double blockCamera = 0.525;
     public double extraFwdToBlock = 0;
+
+    public boolean getSecondStone = true;
 
     public enum autoChoice {SkyStoneOutside, SkyStoneInside, SkyStoneOutsideUnmoved, SkyStoneInsideUnmoved}
 
@@ -54,10 +61,29 @@ public class BasicAuto extends BasicOpMode {
     public float hsvValues[] = {0F, 0F, 0F};
     public String stonePos = "Unknown";
 
+    public boolean skystoneFound = false;
+
     public int stoneSelect = -1;// FOR BLUE: 0 nearest to bridge, 1 center, 2 farthest from bridge FOR RED: 0 farthest from bridge, 1 center, 2 nearest to bridge
 
-    public double stoneArmUp = 0.25;
-    public double stoneArmDown = 0.5;
+    public double secondStoneBackup = 8;
+
+    public double stoneArmUnderBridgeBlue = 0.6;// for blue oriented servo
+    public double stoneArmDownBlue = 0.05;// for blue oriented servo was 0.5
+
+    public double stoneArmInitBlue = 0.6;// for blue oriented servo was 0
+    public double stoneArmInitRed = 0.15;// for red oriented servo was 1
+
+    public double stoneArmUnderBridgeRed = 0.15;// for red oriented servo
+    public double stoneArmDownRed = 0.7;// for red oriented servo was 0.3
+
+    public double vuforiaWaitTime = 1.5;// was 1
+
+    public double leftBound = 400;// in pixels defaults for TensorFlow
+    public double rightBound = 900;// in pixels defaults for TensorFlow
+
+    public boolean drivingMiniBot = false;
+
+    public double detectionRotateSpeed = 0.1;
 
     public ElapsedTime runtime = new ElapsedTime(); //create a counter for elapsed time
 
@@ -103,6 +129,22 @@ public class BasicAuto extends BasicOpMode {
 
     public List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
 
+    public VuforiaTrackable stoneTarget = null;
+
+    public static final String TFOD_MODEL_ASSET = "Skystone.tflite";
+    public static final String LABEL_FIRST_ELEMENT = "Stone";
+    public static final String LABEL_SECOND_ELEMENT = "Skystone";
+
+    public TFObjectDetector tfod;
+
+    public double middleOfStone;
+
+    public double angleWhenFound;
+
+    public double zoneShift;
+
+//    public Telemetry telemetry = new Telemetry();
+
     @Override
     //    public void runOpMode() throws InterruptedException {
     public void runOpMode() {
@@ -113,7 +155,13 @@ public class BasicAuto extends BasicOpMode {
 
 
     }
+
     public void initialize() {
+
+        telemetry.addLine("NOT READY DON'T PRESS PLAY");
+        telemetry.update();
+
+        telemetry.addData(">", "Press Play to start");
 
         if (testModeActive) {
 
@@ -124,7 +172,19 @@ public class BasicAuto extends BasicOpMode {
             readOrWriteHashMap();
         }
 
-        Billy.init(hardwareMap, testModeActive,cons);
+        drivingMiniBot = false;
+        //Values For Full Robot
+        detectionRotateSpeed = 0.1 * (40.0/60.0);
+        cons.DEGREES_TO_COUNTS = (1440.0/360.0) * (40.0/60.0);
+
+        stoneArmInitBlue = 0.6;// for blue oriented servo
+        stoneArmInitRed = 0.15;// for red oriented servo
+        stoneArmUnderBridgeBlue = 0.6;// for blue oriented servo
+        stoneArmDownBlue = 0.05;// for blue oriented servo
+        stoneArmUnderBridgeRed = 0.15;// for red oriented servo
+        stoneArmDownRed = 0.7;// for red oriented servo (was 0.5, could adjust servo horn)
+
+        Billy.init(hardwareMap, testModeActive);
 
         //Motor configuration, recommend Not Changing - Set all motors to forward direction, positive = clockwise when viewed from shaft side
         Billy.frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -173,40 +233,22 @@ public class BasicAuto extends BasicOpMode {
         Billy.servoFoundationL.setPosition(0.80);
         Billy.servoFoundationR.setPosition(0.20);
 
+        Billy.armServoBlue.setPosition(stoneArmInitBlue);
+        Billy.armServoRed.setPosition(stoneArmInitRed);
+
+        Billy.stoneServoLeft.setPosition(1);
+        Billy.stoneServoRight.setPosition(1);
+
         if (testModeActive) {
             // DO NOTHING
         }
         else {
 
+            targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
 
-            VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
+            stoneTarget = targetsSkyStone.get(0);
             stoneTarget.setName("Stone Target");
-            VuforiaTrackable blueRearBridge = targetsSkyStone.get(1);
-            blueRearBridge.setName("Blue Rear Bridge");
-            VuforiaTrackable redRearBridge = targetsSkyStone.get(2);
-            redRearBridge.setName("Red Rear Bridge");
-            VuforiaTrackable redFrontBridge = targetsSkyStone.get(3);
-            redFrontBridge.setName("Red Front Bridge");
-            VuforiaTrackable blueFrontBridge = targetsSkyStone.get(4);
-            blueFrontBridge.setName("Blue Front Bridge");
-            VuforiaTrackable red1 = targetsSkyStone.get(5);
-            red1.setName("Red Perimeter 1");
-            VuforiaTrackable red2 = targetsSkyStone.get(6);
-            red2.setName("Red Perimeter 2");
-            VuforiaTrackable front1 = targetsSkyStone.get(7);
-            front1.setName("Front Perimeter 1");
-            VuforiaTrackable front2 = targetsSkyStone.get(8);
-            front2.setName("Front Perimeter 2");
-            VuforiaTrackable blue1 = targetsSkyStone.get(9);
-            blue1.setName("Blue Perimeter 1");
-            VuforiaTrackable blue2 = targetsSkyStone.get(10);
-            blue2.setName("Blue Perimeter 2");
-            VuforiaTrackable rear1 = targetsSkyStone.get(11);
-            rear1.setName("Rear Perimeter 1");
-            VuforiaTrackable rear2 = targetsSkyStone.get(12);
-            rear2.setName("Rear Perimeter 2");
-
-            allTrackables.addAll(targetsSkyStone);
+            allTrackables.add(targetsSkyStone.get(0));
         }
 
         //Indicate initialization complete and provide telemetry
@@ -216,9 +258,14 @@ public class BasicAuto extends BasicOpMode {
         telemetry.addData(">", "Press Play to start");
         telemetry.update();//Update telemetry to update display
 
-    }// sets: RUN_TO_POSITION, ZeroPowerBehaviour.FLOAT, and 0 power & targetPos
+    }// sets: RUN_TO_POSITION, ZeroPowerBehaviour.BRAKE, and 0 power & targetPos
 
     public void initializeMiniBot() {
+
+        telemetry.addLine("NOT READY DON'T PRESS PLAY");
+        telemetry.update();
+
+        telemetry.addData(">", "Press Play to start");
 
         if (testModeActive) {
 
@@ -229,7 +276,19 @@ public class BasicAuto extends BasicOpMode {
             readOrWriteHashMap();
         }
 
-        Billy.initMiniBot(hardwareMap, testModeActive, cons);
+        drivingMiniBot = true;
+        //Values For Mini Robot
+        detectionRotateSpeed = 0.1;
+        cons.DEGREES_TO_COUNTS = (1440.0/360.0);
+
+        stoneArmInitBlue = 1;// for blue oriented servo was 0
+        stoneArmInitRed = 1;// for red oriented servo
+        stoneArmUnderBridgeBlue = 1;// for blue oriented servo was 0.25
+        stoneArmDownBlue = 0.4;// for blue oriented servo
+        stoneArmUnderBridgeRed = 0.75;// for red oriented servo
+        stoneArmDownRed = 0.3;// for red oriented servo (was 0.5, could adjust servo horn)
+
+        Billy.initMiniBot(hardwareMap, testModeActive);
 
         //Motor configuration, recommend Not Changing - Set all motors to forward direction, positive = clockwise when viewed from shaft side
         Billy.frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -264,41 +323,22 @@ public class BasicAuto extends BasicOpMode {
         Billy.backLeft.setPower(0);
         Billy.backRight.setPower(0);
 
-        Billy.stoneServoArm.setPosition(0);
+        Billy.armServoBlue.setPosition(stoneArmInitBlue);
+//        Billy.armServoRed.setPosition(stoneArmInitRed);
+
         if (testModeActive) {
             // DO NOTHING
         }
         else {
 
+//            if (targetsSkyStone != null) {
+                targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
 
-            VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
-            stoneTarget.setName("Stone Target");
-            VuforiaTrackable blueRearBridge = targetsSkyStone.get(1);
-            blueRearBridge.setName("Blue Rear Bridge");
-            VuforiaTrackable redRearBridge = targetsSkyStone.get(2);
-            redRearBridge.setName("Red Rear Bridge");
-            VuforiaTrackable redFrontBridge = targetsSkyStone.get(3);
-            redFrontBridge.setName("Red Front Bridge");
-            VuforiaTrackable blueFrontBridge = targetsSkyStone.get(4);
-            blueFrontBridge.setName("Blue Front Bridge");
-            VuforiaTrackable red1 = targetsSkyStone.get(5);
-            red1.setName("Red Perimeter 1");
-            VuforiaTrackable red2 = targetsSkyStone.get(6);
-            red2.setName("Red Perimeter 2");
-            VuforiaTrackable front1 = targetsSkyStone.get(7);
-            front1.setName("Front Perimeter 1");
-            VuforiaTrackable front2 = targetsSkyStone.get(8);
-            front2.setName("Front Perimeter 2");
-            VuforiaTrackable blue1 = targetsSkyStone.get(9);
-            blue1.setName("Blue Perimeter 1");
-            VuforiaTrackable blue2 = targetsSkyStone.get(10);
-            blue2.setName("Blue Perimeter 2");
-            VuforiaTrackable rear1 = targetsSkyStone.get(11);
-            rear1.setName("Rear Perimeter 1");
-            VuforiaTrackable rear2 = targetsSkyStone.get(12);
-            rear2.setName("Rear Perimeter 2");
+                stoneTarget = targetsSkyStone.get(0);
+                stoneTarget.setName("Stone Target");
 
-            allTrackables.addAll(targetsSkyStone);
+                allTrackables.add(targetsSkyStone.get(0));
+//            }
         }
         //Indicate initialization complete and provide telemetry
         telemetry.addData("Status: ", "Initialized");
@@ -309,193 +349,299 @@ public class BasicAuto extends BasicOpMode {
 
     }
 
-    public void updateIMU(){
-        /** COMMENTED OUT AS EXPERIMENTAL CODE
-        //NEED TO COMMENT THIS OUT FOR RUNNING ON ROBOT
-        //ADDED FROM OfflineOpModeLIbs so that OfflineOpModeRunFile CAN WORK
-        //Move this imu portion to robot update method
-        Billy.imu.flCnt = Billy.frontLeft.getCurrentPosition();
-        Billy.imu.frCnt = Billy.frontRight.getCurrentPosition();
-        Billy.imu.brCnt = Billy.backRight.getCurrentPosition();
-        Billy.imu.blCnt = Billy.backLeft.getCurrentPosition();
-
-        Billy.imu.blueStoneServoPos = Billy.stoneServoArm.getPosition();
-//        Billy.imu.redStoneServoPos = Billy.servoRedStoneGrab.getPosition();
-
-        fc.updateField(this);
-
-        robotSeeStone= fc.stoneFound;
-
-        if(haveBlueFoundation){writeBF = true;}
-        if(haveRedFoundation){writeRF = true;}
-        if(haveBlueSkyStone1){writeBS1 = true;}
-        if(haveBlueSkyStone2){writeBS2 = true;}
-        if(haveRedSkyStone1){writeRS1 = true;}
-        if(haveRedSkyStone2){writeRS2 = true;}
-
-        try {
-//
-            if (IMUCounter >= size) {
-                int a = 1 / 0;
-            }
-        } catch (ArithmeticException e){
-            telemetry.addData("Exception:","%s, Exceeded %d counter steps", e.toString(),size);
-            telemetry.addData("IMU Counter"," %d", IMUCounter);
-        }
-* END EXPERIMENTAL CODE
- */
+    public void updateIMU() {
 
     }
+
+
+    public void tensorFlowIdentifyLoop() {// TOP LEFT CORNER IS (0,0) SCREEN WIDTH OF 1280 PIXELS VIEW OF 38 INCHES WIDE
+        OpenGLMatrix pose = null;
+        VectorF translation = null;
+
+        while (!gamepad1.dpad_up && opModeIsActive()) {
+            if (tfod != null) {
+                // getUpdatedRecognitions() will return null if no new information is available since
+                // the last time that call was made.
+                // getRecognitions should always return what's being seen
+                List<Recognition> recognitionList = tfod.getRecognitions();
+                if (recognitionList != null) {
+                    telemetry.addData("# Object Detected", recognitionList.size());
+
+                    // step through the list of recognitions and display boundary info.
+                    int i = 0;
+                    for (Recognition recognition : recognitionList) {
+                        telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
+                        telemetry.addData(String.format("  left,right (%d)", i), "%.03f , %.03f",
+                                recognition.getLeft(), recognition.getRight());
+                        telemetry.addData(String.format("  top,bottom (%d)", i), "%.03f , %.03f",
+                                recognition.getTop(), recognition.getBottom());
+                        telemetry.addData("Center Pixels", "recog(%d): %.3f",i,
+                                (recognition.getRight()+recognition.getLeft())/2);
+                    }
+                }
+            }
+            telemetry.addLine("--------------------------");
+            telemetry.addLine("Press dpad up to exit");
+            telemetry.update();
+
+        }
+
+
+        if (tfod != null) {
+            tfod.shutdown();
+        }
+
+    }
+
+    public void tensorFlowExit() {
+        OpenGLMatrix pose = null;
+        VectorF translation = null;
+
+        start = runtime.time();
+        while ((runtime.time() - start) < 4 && !skystoneFound && opModeIsActive()) {
+            if (tfod != null) {
+                // getUpdatedRecognitions() will return null if no new information is available since
+                // the last time that call was made.
+                // getRecognitions should always return what's being seen
+                List<Recognition> recognitionList = tfod.getRecognitions();
+                if (recognitionList != null) {
+                    telemetry.addData("# Object Detected", recognitionList.size());
+
+                    // step through the list of recognitions and display boundary info.
+                    int i = 0;
+                    for (Recognition recognition : recognitionList) {
+
+                        if (recognition.getLabel() == "Skystone") {
+
+                            skystoneFound = true;
+                        }
+
+                        telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
+                        telemetry.addData(String.format("  left,right (%d)", i), "%.03f , %.03f",
+                                recognition.getLeft(), recognition.getRight());
+                        telemetry.addData(String.format("  top,bottom (%d)", i), "%.03f , %.03f",
+                                recognition.getTop(), recognition.getBottom());
+                        telemetry.addData("Center Pixels", "recog(%d): %.3f",i,
+                                (recognition.getRight()+recognition.getLeft())/2);
+                    }
+                }
+            }
+            telemetry.addLine("--------------------------");
+            telemetry.addLine("Press dpad up to exit");
+            telemetry.update();
+
+        }
+
+
+        if (tfod != null) {
+            tfod.shutdown();
+        }
+    }// ??? Useful ???
 
     public void vuforiaStoneIdentifyLoop() {
 
-        targetsSkyStone.activate();
-        while (!isStopRequested()) {
-
-            // check all the trackable targets to see which one (if any) is visible.
-            targetVisible = false;
-            for (VuforiaTrackable trackable : allTrackables) {
-                if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
-                    telemetry.addData("Visible Target", trackable.getName());
-                    targetVisible = true;
-
-                    break;
-                }
-
-            }
-            if(!targetVisible) {
-                telemetry.addData("Visible Target", "none");
-            }
-            telemetry.update();
-        }
-        targetsSkyStone.deactivate();
-    }
-
-    public boolean vuforiaStoneIdentifyExit() {
-        boolean skystone = false;
-
-        targetsSkyStone.activate();
-        double start = runtime.time();
-        while (!isStopRequested() && !skystone && ( (runtime.time() - start) < 1) ) {// was 2 seconds
-
-            // check all the trackable targets to see which one (if any) is visible.
-            targetVisible = false;
-            for (VuforiaTrackable trackable : allTrackables) {
-                if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
-                    telemetry.addData("Visible Target", trackable.getName());
-                    targetVisible = true;
-
-                    if (trackable.getName() == "Stone Target") {
-
-                        skystone = true;
-                        telemetry.addLine("\n If statement successful for Stone Target \n");
-                    }
-
-                    break;
-                }
-            }
-
-            if(!targetVisible) {
-                telemetry.addData("Visible Target", "none");
-            }
-            //telemetry.update();
-        }
-        targetsSkyStone.deactivate();
-
-        return skystone;
-    }
-
-    public void vuforiaStoneLocate() {
-
         OpenGLMatrix pose = null;
         VectorF translation = null;
-        double degreesToTurn = 0;
-
-        telemetry.update();
 
         targetsSkyStone.activate();
+        while (!gamepad1.dpad_up && opModeIsActive()) {
 
-        start = runtime.time();
-        while ((runtime.time() - start < 2) && opModeIsActive()) {
-            for (VuforiaTrackable trackable : allTrackables) {
-                if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
-                    telemetry.addData("Visible Target", trackable.getName());
+            // check all the trackable targets to see which one (if any) is visible.
+            targetVisible = false;
+            if (((VuforiaTrackableDefaultListener) stoneTarget.getListener()).isVisible()) {
+                telemetry.addData("Visible Target", stoneTarget.getName());
+                targetVisible = true;
 
-                    pose = ((VuforiaTrackableDefaultListener)trackable.getListener()).getPose();
-                    if (pose != null) {
-                        translation = pose.getTranslation();
-                        telemetry.addData(trackable.getName() + "-Translation", translation);
-                        degreesToTurn = Math.toDegrees(Math.atan2(translation.get(0), translation.get(1)));
-                        telemetry.addData(trackable.getName() + "-Degrees", degreesToTurn);
+                pose = ((VuforiaTrackableDefaultListener)stoneTarget.getListener()).getPose();
+                if (pose != null) {
+                    translation = pose.getTranslation();
+                    telemetry.addData(stoneTarget.getName() + " X Translation", translation.get(0) / mmPerInch);
+                    telemetry.addData(stoneTarget.getName() + " Y Translation", translation.get(1) / mmPerInch);
 
-                        if (translation.get(1) >= 100) {
-                            telemetry.addData("Skystone status", "Left");// was RIGHT for camera on robot left
-                            stonePos = "Left";
-                            stoneSelect = 0;
-                        }
-                        if (translation.get(1) < 100 && translation.get(1) >  -100) {
-                            telemetry.addData("Skystone status", "CENTER");
-                            stonePos = "Center";
-                            stoneSelect = 1;
-                        }
-                        if (translation.get(1) <= -100) {
-                            telemetry.addData("Skystone status", "Right");// was LEFT for camera on robot left
-                            stonePos = "Right";
-                            stoneSelect = 2;
-                        }
-                        telemetry.addData("translation of stone", translation.get(1));
-                        telemetry.update();
-                    }
                 }
 
             }
-
-        }
-        if(stonePos.equals("Unknown") || stoneSelect == -1) /*NOT Visible*/ {
-            telemetry.addData("Skystone status", "Not Visible: Left");// was RIGHT for camera on robot left
-            stonePos = "Left";
-            stoneSelect = 0;
+            if(!targetVisible) {
+                telemetry.addData("Visible Target", "none");
+            }
+            telemetry.addLine("Press dpad up to exit");
             telemetry.update();
         }
-
-        telemetry.addData("SkystonePos", stonePos);
-        telemetry.addData("Skystone Select", stoneSelect);
-//        pressAToContinue();
-
         targetsSkyStone.deactivate();
+    }
+
+    public void identifySkystone() {
+        OpenGLMatrix pose = null;
+        VectorF translation = null;
+        double stoneY;
+
+        if (((VuforiaTrackableDefaultListener) stoneTarget.getListener()).isVisible()) {
+            telemetry.addData("Visible Target", stoneTarget.getName());
+
+            pose = ((VuforiaTrackableDefaultListener) stoneTarget.getListener()).getPose();
+            if (pose != null) {
+                translation = pose.getTranslation();
+                stoneY = translation.get(1) / mmPerInch;
+                telemetry.addData(stoneTarget.getName() + "-Translation", translation);
+
+                skystoneFound = true;
+
+                stoneYLocation = stoneY;
+                telemetry.addData("translation of stone INCHES", (translation.get(1) / mmPerInch));
+
+            }
+        }
+        else {telemetry.addLine("Skystone NOT Visible");}
+
+    }
+
+    public void determineSkystonePosition() {
+
+        if (stoneYLocation <= (-4.0 + cons.adjustVuforiaPhone)) {// was <= -7.0                                                                                  // FRONT camera <= ((-100/mmPerInch) //|\\     was >= ((100 for BACK camera
+            telemetry.addData("Skystone status", "Left");                                                                                                        // was RIGHT for camera on robot left
+            stonePos = "Left";
+            stoneSelect = 0;
+        }
+        if (stoneYLocation < (4.0 + cons.adjustVuforiaPhone) && stoneYLocation > (-4.0 + cons.adjustVuforiaPhone)) {// was < 2.0  && > -6.0       // FRONT camera < ((100/mmPerInch) && > ((-100/mmPerInch)
+            telemetry.addData("Skystone status", "CENTER");
+            stonePos = "Center";
+            stoneSelect = 1;
+        }
+        if (stoneYLocation >= (4.0 + cons.adjustVuforiaPhone)) {  // was >= 2.0                                                                                      // FRONT camera >= ((100/mmPerInch) //|\\     was <= ((-100 for BACK camera
+            telemetry.addData("Skystone status", "Right");                                                                                                      // was LEFT for camera on robot left
+            stonePos = "Right";
+            stoneSelect = 2;
+        }
+        if(!skystoneFound) /*NOT Visible*/ {
+
+            if(sideColor == -1) {
+                telemetry.addData("Skystone status", "Not Visible: Right");// was RIGHT for camera on robot left
+                stonePos = "Right";
+                stoneSelect = 2;
+                telemetry.update();
+
+            }
+            else {
+                telemetry.addData("Skystone status", "Not Visible: Left");// was RIGHT for camera on robot left
+                stonePos = "Left";
+                stoneSelect = 0;
+                telemetry.update();
+            }
+        }
+    }
+
+    public void tensorFlowIdSkystone() {
+
+        if (tfod != null) {
+            // getUpdatedRecognitions() will return null if no new information is available since
+            // the last time that call was made.
+            // getRecognitions should always return what's being seen
+            List<Recognition> recognitionList = tfod.getRecognitions();
+            if (recognitionList != null) {
+                telemetry.addData("# Object Detected", recognitionList.size());
+
+                // step through the list of recognitions and display boundary info.
+
+                for (int i = 0;i< recognitionList.size();i++) {
+
+                    middleOfStone = (recognitionList.get(i).getRight() + recognitionList.get(i).getLeft()) / 2;
+
+                    if (recognitionList.get(i).getLabel().equals("Skystone")) {
+                        if(recognitionList.get(i).getWidth() < 10.0/cons.inchesPerPixel)
+                            skystoneFound = true;
+
+                            Billy.angleUnWrap();
+                            angleWhenFound = Billy.robotHeading;
+                    }
+
+                    telemetry.addData(String.format("label (%d)", i), recognitionList.get(i).getLabel());
+                    telemetry.addData(String.format("\tleft,right (%d)", i), "%.03f , %.03f",
+                            recognitionList.get(i).getLeft(), recognitionList.get(i).getRight());
+                    telemetry.addData(String.format("\ttop,bottom (%d)", i), "%.03f , %.03f",
+                            recognitionList.get(i).getTop(), recognitionList.get(i).getBottom());
+                    telemetry.addData("\twidth","(%d) = %.03f", i, recognitionList.get(i).getWidth());
+                    telemetry.addData("\tMiddle Pixels", "recog(%d): %.3f",i, middleOfStone);
+                }
+            }
+        }
+    }
+
+    public void determineSkystonePositionTF() {
+
+        zoneShift = (Math.tan(angleWhenFound) * cons.distanceFromStones) / cons.inchesPerPixel;
+        leftBound -= zoneShift;
+        rightBound -= zoneShift;
+
+        if (middleOfStone <= leftBound) {
+            telemetry.addData("Skystone status", "Left");
+            stonePos = "Left";
+            stoneSelect = 0;
+        }
+        if (middleOfStone > leftBound && middleOfStone < rightBound) {
+            telemetry.addData("Skystone status", "CENTER");
+            stonePos = "Center";
+            stoneSelect = 1;
+        }
+        if (middleOfStone >= rightBound) {
+            telemetry.addData("Skystone status", "Right");
+            stonePos = "Right";
+            stoneSelect = 2;
+        }
+        if(!skystoneFound) /*NOT Visible*/ {
+
+            if(sideColor == -1) {
+                telemetry.addData("Skystone status", "Not Visible: Right");
+                stonePos = "Right";
+                stoneSelect = 2;
+                telemetry.update();
+
+            }
+            else {
+                telemetry.addData("Skystone status", "Not Visible: Left");
+                stonePos = "Left";
+                stoneSelect = 0;
+                telemetry.update();
+            }
+        }
+    }
+
+    public void setStoneSideways() {
 
         if(sideColor == 1) {
             if(stonePos.equals("Left")) {
 
-                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
+                stoneSideways = -9.0 + cons.skystoneExtraSideways;// was -10.0
+                secondStoneBackup = 11.0 + cons.skystoneExtraBack;// was 13.0
             }
             if(stonePos.equals("Center")) {
 
-                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
+                stoneSideways = -2.0 + cons.skystoneExtraSideways;// was -3.0
+                secondStoneBackup = 13.0 + cons.skystoneExtraBack;// ws 15.0
             }
             if(stonePos.equals("Right")) {
 
-                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
+                stoneSideways = 6.0 + cons.skystoneExtraSideways;// was 8.0
+                secondStoneBackup = 13.0 + cons.skystoneExtraBack;// was 14.0
             }
         }
 
         if(sideColor == -1) {
             if(stonePos.equals("Right")) {
 
-                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
+                stoneSideways = -15.0 + cons.skystoneExtraSideways;// was -14.0
+                secondStoneBackup = 11.0 + cons.skystoneExtraBack;// was 10.0
             }
             if(stonePos.equals("Center")) {
 
-                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
+                stoneSideways = -7.5 + cons.skystoneExtraSideways;//was -8.0
+                secondStoneBackup = 10.0 + cons.skystoneExtraBack;// was 11.0
             }
             if(stonePos.equals("Left")) {
 
-                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
+                stoneSideways = -0.5 + cons.skystoneExtraSideways;// was -2.0
+                secondStoneBackup = 10.5 + cons.skystoneExtraBack;// was 7.5
             }
         }
-        telemetry.addData("SkystonePos:", stonePos);
-        telemetry.addData("sideways to Skystone:", stoneSideways);
-//        pressAToContinue();
 
     }
 
@@ -505,53 +651,20 @@ public class BasicAuto extends BasicOpMode {
         VectorF translation = null;
         double degreesToTurn = 0;
 
-        telemetry.update();
+        //? Use local variable in place of cons.adjustVuforiaPhone that gets set to cons.adjustVuforiaPhone but then can be set to -1.0 for Blue only to shift camera zones to the left
 
         targetsSkyStone.activate();
 
         start = runtime.time();
-        while ((runtime.time() - start < 2) && opModeIsActive()) {
-            for (VuforiaTrackable trackable : allTrackables) {
-                if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
-                    telemetry.addData("Visible Target", trackable.getName());
+        while ((runtime.time() - start < vuforiaWaitTime) && opModeIsActive() && !skystoneFound) {
 
-                    pose = ((VuforiaTrackableDefaultListener)trackable.getListener()).getPose();
-                    if (pose != null) {
-                        translation = pose.getTranslation();
-                        telemetry.addData(trackable.getName() + "-Translation", translation);
-                        degreesToTurn = Math.toDegrees(Math.atan2(translation.get(0), translation.get(1)));
-                        telemetry.addData(trackable.getName() + "-Degrees", degreesToTurn);
+            identifySkystone();
 
-                        if ((translation.get(1) / mmPerInch) >= ((100/mmPerInch) + cons.adjustVuforiaPhone)) {
-                            telemetry.addData("Skystone status", "Left");// was RIGHT for camera on robot left
-                            stonePos = "Left";
-                            stoneSelect = 0;
-                        }
-                        if ((translation.get(1) / mmPerInch) < ((100/mmPerInch) + cons.adjustVuforiaPhone) && (translation.get(1) /mmPerInch) >  ((-100/mmPerInch) + cons.adjustVuforiaPhone)) {
-                            telemetry.addData("Skystone status", "CENTER");
-                            stonePos = "Center";
-                            stoneSelect = 1;
-                        }
-                        if ((translation.get(1) / mmPerInch) <= ((-100/mmPerInch) + cons.adjustVuforiaPhone)) {
-                            telemetry.addData("Skystone status", "Right");// was LEFT for camera on robot left
-                            stonePos = "Right";
-                            stoneSelect = 2;
-                        }
-                        telemetry.addData("translation of stone INCHES", (translation.get(1) / mmPerInch));
-                        telemetry.update();
-                        stoneYLocation = (translation.get(1) / mmPerInch);
-                    }
-                }
-
-            }
-
-        }
-        if(stonePos.equals("Unknown") || stoneSelect == -1) /*NOT Visible*/ {
-            telemetry.addData("Skystone status", "Not Visible: Left");// was RIGHT for camera on robot left
-            stonePos = "Left";
-            stoneSelect = 0;
             telemetry.update();
+
         }
+
+        determineSkystonePosition();
 
         telemetry.addData("SkystonePos", stonePos);
         telemetry.addData("Skystone Select", stoneSelect);
@@ -560,35 +673,118 @@ public class BasicAuto extends BasicOpMode {
 
         targetsSkyStone.deactivate();
 
-        if(sideColor == 1) {
-            if(stonePos.equals("Left")) {
+        setStoneSideways();
 
-                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
-            }
-            if(stonePos.equals("Center")) {
+        telemetry.addData("SkystonePos:", stonePos);
+        telemetry.addData("sideways to Skystone:", stoneSideways);
+//        pressAToContinue();
 
-                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
-            }
-            if(stonePos.equals("Right")) {
+    }
 
-                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
-            }
+    public void vuforiaStoneLIRotate() {
+
+        targetsSkyStone.activate();
+
+        start = runtime.time();
+        while ((runtime.time() - start < 1) && opModeIsActive() && !skystoneFound) {
+
+            identifySkystone();
+
+            telemetry.addData("Elapsed Time", runtime.time() - start);
+            telemetry.update();
         }
+        start = runtime.time();
+        while ((runtime.time() - start < 1) && opModeIsActive() && !skystoneFound) {
+            Billy.setMotorPower(0.1);
 
-        if(sideColor == -1) {
-            if(stonePos.equals("Right")) {
+            identifySkystone();
 
-                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
-            }
-            if(stonePos.equals("Center")) {
-
-                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
-            }
-            if(stonePos.equals("Left")) {
-
-                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
-            }
+            telemetry.addData("Elapsed Time", runtime.time() - start);
+            telemetry.update();
         }
+        Billy.setMotorPower(0);
+
+        start = runtime.time();
+        while ((runtime.time() - start < 2) && opModeIsActive() && !skystoneFound) {
+            Billy.setMotorPower(-0.1);
+
+            identifySkystone();
+
+            telemetry.addData("Elapsed Time", runtime.time() - start);
+            telemetry.update();
+        }
+        Billy.setMotorPower(0);
+
+        determineSkystonePosition();
+
+        telemetry.addData("translation of stone INCHES", stoneYLocation);
+        telemetry.update();
+
+        Billy.IMUDriveRotate(0, "Return to 0", this);
+
+        telemetry.addData("SkystonePos", stonePos);
+        telemetry.addData("Skystone Select", stoneSelect);
+        telemetry.addData("Skystone Y Location", stoneYLocation);
+//        pressAToContinue();
+
+        targetsSkyStone.deactivate();
+
+        setStoneSideways();
+
+        telemetry.addData("SkystonePos:", stonePos);
+        telemetry.addData("sideways to Skystone:", stoneSideways);
+//        pressAToContinue();
+
+    }
+
+    public void tensorFlowStoneLIRotate() {
+
+        start = runtime.time();
+        while ((runtime.time() - start < 1) && opModeIsActive()/* && !skystoneFound*/) {
+
+            tensorFlowIdSkystone();
+
+            telemetry.addData("Elapsed Time", runtime.time() - start);
+            telemetry.update();
+        }
+        start = runtime.time();
+        while ((runtime.time() - start < 1) && opModeIsActive() && !skystoneFound) {
+            Billy.setMotorPower(0.1);
+
+            tensorFlowIdSkystone();
+
+            telemetry.addData("Elapsed Time", runtime.time() - start);
+            telemetry.update();
+        }
+        Billy.setMotorPower(0);
+
+        start = runtime.time();
+        while ((runtime.time() - start < 2) && opModeIsActive() && !skystoneFound) {
+            Billy.setMotorPower(-0.1);
+
+            tensorFlowIdSkystone();
+
+            telemetry.addData("Elapsed Time", runtime.time() - start);
+            telemetry.update();
+        }
+        Billy.setMotorPower(0);
+
+        determineSkystonePositionTF();
+
+        telemetry.addData("Skystone TF Center", middleOfStone);
+        telemetry.update();
+
+        Billy.IMUDriveRotate(0, "Return to 0", this);
+
+        telemetry.addData("SkystonePos", stonePos);
+        telemetry.addData("Skystone Select", stoneSelect);
+        telemetry.addData("Skystone TF Center", middleOfStone);
+        telemetry.addData("TF Zone Bounds","[L: %.02f, R: %.02f]",  leftBound, rightBound);
+
+//        pressAToContinue();
+
+        setStoneSideways();
+
         telemetry.addData("SkystonePos:", stonePos);
         telemetry.addData("sideways to Skystone:", stoneSideways);
 //        pressAToContinue();
@@ -600,17 +796,17 @@ public class BasicAuto extends BasicOpMode {
         if(sideColor == 1) {
             if(stoneSelect == 0) {
 
-                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
+                stoneSideways = -14 + cons.skystoneExtraSideways;// was -12
                 stonePos = "Left";
             }
             if(stoneSelect == 1) {
 
-                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
+                stoneSideways = -6 + cons.skystoneExtraSideways;// was -4
                 stonePos = "Center";
             }
             if(stoneSelect == 2) {
 
-                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
+                stoneSideways = 5 + cons.skystoneExtraSideways;// was 8
                 stonePos = "Right";
             }
         }
@@ -618,17 +814,17 @@ public class BasicAuto extends BasicOpMode {
         if(sideColor == -1) {
             if(stoneSelect == 0) {
 
-                stoneSideways = -14 + Billy.skystoneExtraSideways;// was -12
+                stoneSideways = -14 + cons.skystoneExtraSideways;// was -12
                 stonePos = "Right";
             }
             if(stoneSelect == 1) {
 
-                stoneSideways = -6 + Billy.skystoneExtraSideways;// was -4
+                stoneSideways = -6 + cons.skystoneExtraSideways;// was -4
                 stonePos = "Center";
             }
             if(stoneSelect == 2) {
 
-                stoneSideways = 5 + Billy.skystoneExtraSideways;// was 8
+                stoneSideways = 5 + cons.skystoneExtraSideways;// was 8
                 stonePos = "Left";
             }
         }
@@ -643,17 +839,174 @@ public class BasicAuto extends BasicOpMode {
 
     }
 
+//    public void findSkystoneSideways() {
+//
+//        start = runtime.time();
+//        while ((runtime.time() - start < 1) && opModeIsActive()/* && !skystoneFound*/) {
+//
+//            tensorFlowIdSkystone();
+//
+//            telemetry.addData("Elapsed Time", runtime.time() - start);
+//            telemetry.update();
+//        }
+//
+//        nextStone();
+//
+//        start = runtime.time();
+//        while ((runtime.time() - start < 1) && opModeIsActive() && !skystoneFound) {
+//
+//            tensorFlowIdSkystone();
+//
+//            telemetry.addData("Elapsed Time", runtime.time() - start);
+//            telemetry.update();
+//        }
+//
+//        nextStone();
+//
+//        // The third Stone must be Skystone if correctly NOT identifying other stones
+//
+//        determineSkystonePositionTF();
+//
+//        telemetry.addData("Skystone TF Center", middleOfStone);
+//        telemetry.update();
+//
+//        Billy.IMUDriveRotate(0, "Return to 0", this);
+//
+//        telemetry.addData("SkystonePos", stonePos);
+//        telemetry.addData("Skystone Select", stoneSelect);
+//        telemetry.addData("Skystone TF Center", middleOfStone);
+//        telemetry.addData("TF Zone Bounds","[L: %.02f, R: %.02f]",  leftBound, rightBound);
+//
+////        pressAToContinue();
+//
+//        setStoneSideways();
+//
+//        telemetry.addData("SkystonePos:", stonePos);
+//        telemetry.addData("sideways to Skystone:", stoneSideways);
+////        pressAToContinue();
+//    }
+
+    public void determineSkystonePosition2Look() {
+
+        if(sideColor == 1) {
+            if (stoneYLocation > 0) {
+                telemetry.addData("Skystone status", "Right");
+                stonePos = "Right";
+            }
+            if (stoneYLocation < 0) {
+                telemetry.addData("Skystone status", "CENTER");
+                stonePos = "Center";
+            }
+        }
+        if(sideColor == -1) {
+            if (stoneYLocation < 0) {
+                telemetry.addData("Skystone status", "Left");
+                stonePos = "Right";
+            }
+            if (stoneYLocation > 0) {
+                telemetry.addData("Skystone status", "CENTER");
+                stonePos = "Center";
+            }
+        }
+
+        if(!skystoneFound) /*NOT Visible*/ {
+
+            if(sideColor == -1) {
+                telemetry.addData("Skystone status", "Not Visible: Right");// was RIGHT for camera on robot left
+                stonePos = "Right";
+                telemetry.update();
+
+            }
+            else {
+                telemetry.addData("Skystone status", "Not Visible: Left");// was RIGHT for camera on robot left
+                stonePos = "Left";
+                telemetry.update();
+            }
+        }
+    }
+
+    public void setStoneSideways2Look() {
+
+        if(sideColor == 1) {
+            if(stonePos.equals("Left")) {
+
+                stoneSideways = -13.5 + cons.skystoneExtraSideways;// was -9.0
+                secondStoneBackup = 11.0 + cons.skystoneExtraBack;// was 11.0
+            }
+            if(stonePos.equals("Center")) {
+
+                stoneSideways = -6.5 + cons.skystoneExtraSideways;// was -2.0
+                secondStoneBackup = 13.0 + cons.skystoneExtraBack;// ws 13.0
+            }
+            if(stonePos.equals("Right")) {
+
+                stoneSideways = 3.5 + cons.skystoneExtraSideways;// was 6.0
+                secondStoneBackup = 15.0 + cons.skystoneExtraBack;// was 13.0
+            }
+        }
+
+        if(sideColor == -1) {
+            if(stonePos.equals("Right")) {
+
+                stoneSideways = -10.5 + cons.skystoneExtraSideways;// was -15.0
+                secondStoneBackup = 11.0 + cons.skystoneExtraBack;// was 11.0
+            }
+            if(stonePos.equals("Center")) {
+
+                stoneSideways = -3.0 + cons.skystoneExtraSideways;//was -7.5
+                secondStoneBackup = 10.0 + cons.skystoneExtraBack;// was 10.0
+            }
+            if(stonePos.equals("Left")) {
+
+                stoneSideways = 4.0 + cons.skystoneExtraSideways;// was -0.5
+                secondStoneBackup = 10.5 + cons.skystoneExtraBack;// was 10.5
+            }
+        }
+
+    }
+
+    public void knowSkystonePosition2Look() {
+        double time = 0;
+
+        targetsSkyStone.activate();
+
+        start = runtime.time();
+        while ((runtime.time() - start < 2) && opModeIsActive() && !skystoneFound) {
+
+            identifySkystone();
+
+            telemetry.addData("Elapsed Time", "%.1f",runtime.time() - start);
+            time = runtime.time() - start;
+            telemetry.update();
+        }
+
+        determineSkystonePosition2Look();
+
+        telemetry.addData("time to find Skystone (%.2f)", time);
+        telemetry.addData("SkystonePos", stonePos);
+        telemetry.addData("Skystone Y Location", stoneYLocation);
+
+        targetsSkyStone.deactivate();
+
+        setStoneSideways2Look();
+
+        telemetry.addData("SkystonePos:", stonePos);
+        telemetry.addData("sideways to Skystone:", stoneSideways);
+    }
+
     public void fwdToTwoStone() {
+        if(!drivingMiniBot) {
 
-//        Billy.slide.setPower(-cons.pHM.get("slidePowerLimit").value);
-//        sleep(400);// 0.400 of a second
-//        Billy.slide.setPower(0);
+            Billy.slide.setPower(-cons.pHM.get("slidePowerLimit").value);
+            sleep(400);// 0.400 of a second
+            Billy.slide.setPower(0);
 
-//        Billy.stoneServoLeft.setPosition(blockCamera);
-//        Billy.stoneServoRight.setPosition(blockCamera);
+            Billy.stoneServoLeft.setPosition(0.15);
+            Billy.stoneServoRight.setPosition(0.15);
+        }
 
         telemetry.addData("robotHeading:","(%.2f)", Billy.robotHeading);
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack,16, 0,"Forward 16 inches",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, cons.forwardFirstMove, 0,"Forward 16 inches",this);
 
 //        pressAToContinue();
     }
@@ -959,7 +1312,7 @@ public class BasicAuto extends BasicOpMode {
 //
 //        //pressAToContinue();
 //
-//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,cons.pHM.get("dropStoneForward").value + extraFwd, cons.pHM.get("rotatePowerLimit").value, cons.pHM.get("drivePowerMinimum").value, "Forward 35+ inches",this);//was 48
+//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,cons.pHM.get("forwardFirstMove").value + extraFwd, cons.pHM.get("rotatePowerLimit").value, cons.pHM.get("drivePowerMinimum").value, "Forward 35+ inches",this);//was 48
 //
 //        //Drop stone with gripper
 ////        Billy.stoneServoLeft.setPosition(0.15);
@@ -990,7 +1343,7 @@ public class BasicAuto extends BasicOpMode {
 //
 //        //pressAToContinue();
 //
-//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, cons.pHM.get("dropStoneForward").value + 35 + extraFwd,  "Forward 35+ inches",this);//was 48
+//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, cons.pHM.get("forwardFirstMove").value + 35 + extraFwd,  "Forward 35+ inches",this);//was 48
 //
 //        //Drop stone with gripper
 ////        Billy.stoneServoLeft.setPosition(0.15);
@@ -1001,7 +1354,7 @@ public class BasicAuto extends BasicOpMode {
 //
 //    public void getSecondStoneOld() {
 //
-//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,-cons.pHM.get("dropStoneForward").value -35 - extraFwd - 24, "Backward to second stone",this);//was 48
+//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,-cons.pHM.get("forwardFirstMove").value -35 - extraFwd - 24, "Backward to second stone",this);//was 48
 //
 //        Billy.driveGeneralPower(HardwareBilly.moveDirection.Rotate,(90 * sideColor), cons.pHM.get("rotatePowerLimit").value, cons.pHM.get("drivePowerMinimum").value,"Rotate 90 degrees CW",this);
 //
@@ -1025,7 +1378,7 @@ public class BasicAuto extends BasicOpMode {
 //
 //        //pressAToContinue();
 //
-//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,cons.pHM.get("dropStoneForward").value + 35 + extraFwd + 24,  "Forward with second stone",this);//was 48
+//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,cons.pHM.get("forwardFirstMove").value + 35 + extraFwd + 24,  "Forward with second stone",this);//was 48
 //
 //        //Drop stone with gripper
 ////        Billy.stoneServoLeft.setPosition(0.15);
@@ -1044,11 +1397,24 @@ public class BasicAuto extends BasicOpMode {
 
 //        pressAToContinue();
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, stoneSideways * sideColor, 0, "Sideways to face stone",this);
+        if(!drivingMiniBot) {
+
+            Billy.stoneServoLeft.setPosition(1);
+            Billy.stoneServoRight.setPosition(1);
+            sleep(400);// 0.400 of a second
+
+            Billy.slide.setPower(cons.pHM.get("slidePowerLimit").value);
+            sleep(350);// 0.350 of a second
+            Billy.slide.setPower(0);
+        }
+
+//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, stoneSideways * sideColor, 0, "Sideways to face stone",this);
+        Billy.IMUDriveRotate(-90 * sideColor, "Rotate 90 degrees CCW",this);
 
 //        pressAToContinue();
 
-        Billy.IMUDriveRotate(-90 * sideColor, "Rotate 90 degrees CCW",this);
+//        Billy.IMUDriveRotate(-90 * sideColor, "Rotate 90 degrees CCW",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -stoneSideways, -90 * sideColor, "Forward to align with stone",this);
 
 //        pressAToContinue();
 
@@ -1056,17 +1422,12 @@ public class BasicAuto extends BasicOpMode {
 
     public void takeStone1() {
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, sideGrabStone * sideColor, -90 * sideColor, "Right 8 inches",this);
-
-//        pressAToContinue();
-
-        //Move commented below is for angle adjustment
-//        Billy.angleUnWrap();
-//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft(HardwareBilly.moveDirection.Rotate, ((-90 - Billy.robotHeading) * sideColor), 0, "Rotate 90 degrees CW",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, cons.sideGrabSkystone * sideColor, -90 * sideColor, "Right 8 inches",this);
 
 //        pressAToContinue();
         //grab skystone with servo arm
-        Billy.stoneServoArm.setPosition(stoneArmDown);
+        if(sideColor == 1) {Billy.armServoBlue.setPosition(stoneArmDownBlue);}
+        if(sideColor == -1) {Billy.armServoRed.setPosition(stoneArmDownRed);}
         sleep(500);
 
         if(testModeActive) {
@@ -1081,7 +1442,7 @@ public class BasicAuto extends BasicOpMode {
         }
 //        pressAToContinue();
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (-sideGrabStone / 2) * sideColor, -90 * sideColor, "Left 8 inches",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (-(cons.sidePullGrabSkystone)) * sideColor, -90 * sideColor, "Left 8 inches",this);
 
 //        pressAToContinue();
 
@@ -1089,17 +1450,13 @@ public class BasicAuto extends BasicOpMode {
 
 //        pressAToContinue();
 
-//        Billy.angleUnWrap();
-//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft(HardwareBilly.moveDirection.Rotate, ((-180 - Billy.robotHeading) * sideColor), 0, "Rotate 90 degrees CW",this);
-//
-//        pressAToContinue();
-
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (52 + stoneSideways) * sideColor, -180 * sideColor, "Right 52+ inches",this);
-                                                                            // was 48
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (47 + stoneSideways) * sideColor, -180 * sideColor, "Right 52+ inches",this);
+                                                                            // was 52
 //        pressAToContinue();
 
         //release skystone with servo arm
-        Billy.stoneServoArm.setPosition(stoneArmUp);
+        if(sideColor == 1){Billy.armServoBlue.setPosition(stoneArmUnderBridgeBlue);}
+        if(sideColor == -1){Billy.armServoRed.setPosition(stoneArmUnderBridgeRed);}
         sleep(500);
 
         if(testModeActive) {
@@ -1118,15 +1475,15 @@ public class BasicAuto extends BasicOpMode {
 
     public void getStone2() {
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,( -44 - stoneSideways - 24 ) * sideColor, -180 * sideColor, "Left 45+ inches",this);
-                                                                                // was 52
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,( -35 - stoneSideways - 24 ) * sideColor, -180 * sideColor, "Left 45+ inches",this);
+                                                                                // was -40
 //        pressAToContinue();
 
         Billy.IMUDriveRotate( -90 * sideColor, "Rotate 90 degrees CW",this);
 
 //        pressAToContinue();
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -cons.skystoneExtraBack, -90 * sideColor, "Left 8 inches",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -secondStoneBackup, -90 * sideColor, "Left 8 inches",this);
 
 //        pressAToContinue();
 
@@ -1134,17 +1491,13 @@ public class BasicAuto extends BasicOpMode {
 
     public void takeStone2() {
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,(sideGrabStone/2) * sideColor, -90 * sideColor, "Right 8 inches",this);
-
-//        pressAToContinue();
-
-//        Billy.angleUnWrap();
-//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.Rotate, ((-90 - Billy.robotHeading) * sideColor), 0, "Rotate 90 degrees CW",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,(cons.sidePullGrabSkystone) * sideColor, -90 * sideColor, "Right 8 inches",this);
 
 //        pressAToContinue();
 
         //grab skystone with servo arm
-        Billy.stoneServoArm.setPosition(stoneArmDown);
+        if(sideColor == 1) {Billy.armServoBlue.setPosition(stoneArmDownBlue);}
+        if(sideColor == -1) {Billy.armServoRed.setPosition(stoneArmDownRed);}
         sleep(500);
 
         if(testModeActive) {
@@ -1159,11 +1512,11 @@ public class BasicAuto extends BasicOpMode {
         }
 //        pressAToContinue();
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (-sideGrabStone/2) * sideColor, -90 * sideColor, "Left 8 inches",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (-(cons.sidePullGrabSkystone)) * sideColor, -90 * sideColor, "Left 8 inches",this);
 
 //        pressAToContinue();
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, cons.skystoneExtraBack, -90 * sideColor, "Right 8 inches",this);
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, secondStoneBackup, -90 * sideColor, "Right 8 inches",this);
 
 //        pressAToContinue();
 
@@ -1171,16 +1524,12 @@ public class BasicAuto extends BasicOpMode {
 
 //        pressAToContinue();
 
-//        Billy.angleUnWrap();
-//        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.Rotate, ((-180 - Billy.robotHeading) * sideColor), 0, "Rotate 90 degrees CW",this);
-//
-//        pressAToContinue();
-
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (44 + stoneSideways + 24) * sideColor, -180 * sideColor, "Right with stone 2",this);
-                                                                            // was 52
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (35 + stoneSideways + 24) * sideColor, -180 * sideColor, "Right with stone 2",this);
+                                                                            // was 40
 //        pressAToContinue();
         //release skystone with servo arm
-        Billy.stoneServoArm.setPosition(stoneArmUp);
+        if(sideColor == 1){Billy.armServoBlue.setPosition(stoneArmUnderBridgeBlue);}
+        if(sideColor == -1){Billy.armServoRed.setPosition(stoneArmUnderBridgeRed);}
         sleep(500);
 
         if(testModeActive) {
@@ -1197,50 +1546,113 @@ public class BasicAuto extends BasicOpMode {
 
     }
 
+    public void getStone2TimeCheck() {
+
+        if(runtime.time() > 16) {// 16 sec is guesstimate
+
+            getSecondStone = false;
+        }
+
+        if(getSecondStone) {
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,( -35 - stoneSideways - 24 ) * sideColor, -180 * sideColor, "Left 45+ inches",this);
+        // was -40
+//        pressAToContinue();
+
+        Billy.IMUDriveRotate( -90 * sideColor, "Rotate 90 degrees CW",this);
+
+//        pressAToContinue();
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -secondStoneBackup, -90 * sideColor, "Left 8 inches",this);
+
+//        pressAToContinue();
+        }
+
+    }
+
+    public void takeStone2TimeCheck() {
+
+        if(getSecondStone) {
+
+            Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (-(cons.sidePullGrabSkystone)) * sideColor, -90 * sideColor, "Right 8 inches", this);
+
+//        pressAToContinue();
+
+            //grab skystone with servo arm
+            if (sideColor == 1) {
+                Billy.armServoBlue.setPosition(stoneArmDownBlue);
+            }
+            if (sideColor == -1) {
+                Billy.armServoRed.setPosition(stoneArmDownRed);
+            }
+            sleep(500);
+
+            if (testModeActive) {
+                if (sideColor == 1) {
+
+                    haveBlueSkyStone2 = true;
+                }
+                if (sideColor == -1) {
+
+                    haveRedSkyStone2 = true;
+                }
+            }
+//        pressAToContinue();
+
+            Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (-(cons.sidePullGrabSkystone)) * sideColor, -90 * sideColor, "Left 8 inches", this);
+
+//        pressAToContinue();
+
+            Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, secondStoneBackup, -90 * sideColor, "Right 8 inches", this);
+
+//        pressAToContinue();
+
+            Billy.IMUDriveRotate(-180 * sideColor, "Rotate 90 degrees CCW", this);
+
+//        pressAToContinue();
+
+            Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, (35 + stoneSideways + 24) * sideColor, -180 * sideColor, "Right with stone 2", this);
+            // was 40
+//        pressAToContinue();
+            //release skystone with servo arm
+            if (sideColor == 1) {
+                Billy.armServoBlue.setPosition(stoneArmUnderBridgeBlue);
+            }
+            if (sideColor == -1) {
+                Billy.armServoRed.setPosition(stoneArmUnderBridgeRed);
+            }
+            sleep(500);
+
+            if (testModeActive) {
+                if (sideColor == 1) {
+
+                    haveBlueSkyStone2 = false;
+                }
+                if (sideColor == -1) {
+
+                    haveRedSkyStone2 = false;
+                }
+            }
+//        pressAToContinue();
+
+        }
+
+    }
+
     public void twoStonePark() {
 
-        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,-22 * sideColor, -180 * sideColor, "Left 10 inches",this);
+        if(sideColor == 1) {
 
-    }
+            Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,-16 * sideColor, -180 * sideColor, "Left 10 inches",this);
 
-    public void findSkyStone() {
-        boolean skystoneFound = false;
-        int looped = 0;
-
-        while(looped < 2 && opModeIsActive()) {
-            skystoneFound = vuforiaStoneIdentifyExit();
-
-            if(skystoneFound) {
-
-                telemetry.addLine("SkyStone Found");
-                telemetry.update();
-
-//                grabSkyStone();
-
-                looped = 100;
-            }
-            else {
-
-                telemetry.addLine("Next Stone");
-                telemetry.update();
-
-                nextStone();
-                looped +=1;
-                extraFwd += 8;
-                extraFwdToBlock += 1;
-            }
         }
-        if(!skystoneFound) {
+        if(sideColor == -1) {
 
-            telemetry.addLine("Third Stone");
-            telemetry.update();
-
-//            grabSkyStone();
+            Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,-8 * sideColor, -180 * sideColor, "Left 10 inches",this);
 
         }
 
     }
-
 
     public void grabFoundation() {
 
@@ -1319,6 +1731,39 @@ public class BasicAuto extends BasicOpMode {
                 haveRedFoundation = false;
             }
         }
+    }
+
+    public void pullFoundationSideways() {
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, 12 * sideColor, 0, "Right 12 inches", this);
+
+        Billy.IMUDriveRotate((-90 * sideColor), "Rotate to 90 degrees CCW",this);
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, 8, -90 * sideColor, "Forward 8 inches at 90 CCW with Foundation", this);
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, -20 * sideColor, -90 * sideColor, "Right 20 inches at 90 CCW with Foundation", this);
+
+        // release foundation from gripper
+        Billy.servoFoundationL.setPosition(0.10);
+        Billy.servoFoundationR.setPosition(0.90);
+
+        if(testModeActive) {
+            if(sideColor == 1) {
+
+                haveBlueFoundation = false;
+            }
+            if(sideColor == -1) {
+
+                haveRedFoundation = false;
+            }
+        }
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -5, -90 * sideColor, "Backward 20 inches at 90 CCW with Foundation", this);
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft, -10 * sideColor, -90 * sideColor, "Left 55 20 at 90 CCW with Foundation", this);
+
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -40, -90 * sideColor, "Backward 25 inches at 90 CCW with Foundation", this);
+
     }
 
     public void awayFromFoundationOneMove() {
@@ -1413,4 +1858,5 @@ public class BasicAuto extends BasicOpMode {
         Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack, -44, -90*sideColor, "backup", this);
 
     }
+
 }

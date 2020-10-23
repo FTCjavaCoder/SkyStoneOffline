@@ -2,19 +2,18 @@ package Skystone_14999.OpModes.Test;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import Skystone_14999.Parameters.Constants;
 import Skystone_14999.OpModes.TeleOp.BasicTeleOp;
 
 
-@TeleOp(name="ServoTest", group="TeleOp")
-@Disabled
+@TeleOp(name="Servo Test", group="TeleOp")
+//@Disabled
 public class TestTeleOpMethods extends BasicTeleOp {
 
-    public Constants prm = new Constants();
+    public double StoneArmPosBlue = 0.5;
+    public double StoneArmPosRed = 0.5;
+    public double CapstoneArmPos = 0.5;
+    public double StoneArmPosIncrement = 0.05;
 
-    public double StoneGrabPos;
-    boolean positive;
     @Override
     public void runOpMode() {
 
@@ -26,28 +25,68 @@ public class TestTeleOpMethods extends BasicTeleOp {
 
         while (opModeIsActive()) {
 
-            if (gamepad1.b) {
-                positive = true;
-                TestServo(positive);
+//            if (gamepad1.b) {
+//
+//                StoneArmPosRed += StoneArmPosIncrement;
+//                TestServoRed(StoneArmPosRed);
+//                sleep(250);
+//            }
+//            if (gamepad1.x) {
+//
+//                StoneArmPosRed -= StoneArmPosIncrement;
+//                TestServoRed(StoneArmPosRed);
+//                sleep(250);
+//            }
+//            if (gamepad1.y) {
+//
+//                StoneArmPosBlue += StoneArmPosIncrement;
+//                TestServoBlue(StoneArmPosBlue);
+//                sleep(250);
+//            }
+//            if (gamepad1.a) {
+//
+//                StoneArmPosBlue -= StoneArmPosIncrement;
+//                TestServoBlue(StoneArmPosBlue);
+//                sleep(250);
+//            }
+            if (gamepad1.y) {
+
+                CapstoneArmPos += StoneArmPosIncrement;
+                TestServoCapstone(CapstoneArmPos);
                 sleep(250);
             }
-            if (gamepad1.x) {
-                positive = false;
-                TestServo(positive);
+            if (gamepad1.a) {
+
+                CapstoneArmPos -= StoneArmPosIncrement;
+                TestServoCapstone(CapstoneArmPos);
                 sleep(250);
             }
+
+            telemetry.addLine("For Capstone servo Y to increase position and A to decrease position");
+            telemetry.addData("Servo Variable", "Capstone Command (%.2f)", CapstoneArmPos);
+            telemetry.addData("Servo Position", "Servo Capstone (%.2f)", Billy.servoCapstoneRelease.getPosition());
+//            telemetry.addLine("For Blue servo Y to increase position and A to decrease position");
+//            telemetry.addLine("For Red servo B to increase position and X to decrease position");
+//            telemetry.addData("Servo Variables", "Blue Command (%.2f), Red Command (%.2f)",
+//                    StoneArmPosBlue, StoneArmPosRed);
+//            telemetry.addData("Servo Positions", "Servo Blue (%.2f), Servo Red (%.2f)",
+//                    Billy.armServoBlue.getPosition(), Billy.armServoRed.getPosition());
+            telemetry.update();
         }
     }
 
-    public void TestServo(boolean positive) {
+    public void TestServoRed(double armPos) {
 
-            if (positive){
-                StoneGrabPos += .05;
-            }
-            if (!positive){
-                StoneGrabPos -= .05;
-            }
+        Billy.armServoRed.setPosition(armPos);
+    }
 
-//        Billy.servoStoneGrab.setPosition(StoneGrabPos);
+    public void TestServoBlue(double armPos) {
+
+        Billy.armServoBlue.setPosition(armPos);
+    }
+    public void TestServoCapstone(double armPos) {
+
+        Billy.servoCapstoneRelease.setPosition(armPos);
+
     }
 }

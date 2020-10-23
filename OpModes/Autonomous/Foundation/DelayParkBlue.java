@@ -1,16 +1,16 @@
-package Skystone_14999.OpModes.Autonomous;
+package Skystone_14999.OpModes.Autonomous.Foundation;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
-@Autonomous(name="Double SkyStone Drop Park Inside Red", group="Autonomous")
+import Skystone_14999.HarwareConfig.HardwareBilly;
+import Skystone_14999.OpModes.Autonomous.BasicAuto;
 
-public class DoubleSkyStoneDP_InR extends BasicAuto {
+@Autonomous(name="Delay Park Blue", group="Park")
+
+public class DelayParkBlue extends BasicAuto {
 
     @Override
     public void runOpMode() {
@@ -27,11 +27,10 @@ public class DoubleSkyStoneDP_InR extends BasicAuto {
         targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
         //all above lines need to be all autonomous OpMode's runOpMode before initialization
 
-        foundationPosChange = 0;// 0 for moved, 26 for unmoved Foundation.
-        insideOutside = 0;// 0 for Inside, 24 for Outside
-        sideColor = -1;// + for Blue, - for Red, KEEP RED
+        sideColor = 1;
+        foundationInOut = 22;// 0 for Inside, 22 for Outside
 
-        initializeMiniBot();
+        initialize();
 
         waitForStart();
 
@@ -39,22 +38,14 @@ public class DoubleSkyStoneDP_InR extends BasicAuto {
 
         Billy.initIMU(this);
 
-        fwdToTwoStone();
+        sleep(20000);// 20 seconds
 
-        vuforiaStoneLocate();
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.FwdBack,2, 0,"Forward 2 inches",this);
 
-        goToStone();
-
-        takeStone1();
-
-        getStone2();
-
-        takeStone2();
-
-        twoStonePark();
+        Billy.IMUDriveFwdRight(HardwareBilly.moveDirection.RightLeft,50, 0,"Right 50 inches",this);
 
         telemetry.addLine("OpMode Complete");
         telemetry.update();
-        sleep(500);
+        sleep(2000);
     }
 }

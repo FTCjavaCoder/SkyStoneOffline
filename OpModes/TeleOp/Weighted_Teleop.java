@@ -1,6 +1,5 @@
 package Skystone_14999.OpModes.TeleOp;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
@@ -9,9 +8,9 @@ import com.qualcomm.robotcore.util.Range;
  *
  */
 
-@TeleOp(name="FullDrive Stick Control", group="TeleOp")
+@TeleOp(name="Weighted Power Teleop", group="TeleOp")
 
-public class FullDrive_StickControl extends BasicTeleOp {
+public class Weighted_Teleop extends BasicTeleOp {
 
     @Override
     public void runOpMode() {
@@ -27,24 +26,24 @@ public class FullDrive_StickControl extends BasicTeleOp {
 
         Billy.initIMU(this);
 
-            Billy.armServoBlue.setPosition(0.6);
-            Billy.armServoRed.setPosition(0.15);
+        Billy.armServoBlue.setPosition(0.6);
+        Billy.armServoRed.setPosition(0.15);
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
             // Set Drive Motor Power
-            Billy.drivePowerAll(gamepad1, gamepad2,this);
+            Billy.weightedDrivePower(gamepad1, gamepad2, this);
 
 //            // use the left/right triggers on gamepad1 to rotate the robot counter/clockwise
 //            Billy.rotatePowerRightStick(gamepad1, gamepad2);
 
             // use the left stick on gamepad2 to raise/lower the jack
 //            Billy.jackPower(gamepad1, gamepad2);
-            Billy.jackPowerEncoderStop(gamepad1, gamepad2,this);
+            Billy.jackPowerEncoderStop(gamepad1, gamepad2, this);
 
             // use the right stick on gamepad2 to extend/retract the slide
-            Billy.slidePower(gamepad1, gamepad2,this);
+            Billy.slidePower(gamepad1, gamepad2, this);
 
             //
             if (gamepad2.right_bumper) {
@@ -98,15 +97,13 @@ public class FullDrive_StickControl extends BasicTeleOp {
                 Billy.servoFoundationR.setPosition(0.20);
             }
 
+            // SERVOS FOUNDATION
             if(gamepad1.dpad_left) {
-                Billy.armServoBlue.setPosition(0.6);
-                Billy.armServoRed.setPosition(0.15);
+
+                Billy.armServoBlue.setPosition(1);
+                Billy.armServoRed.setPosition(0);
             }
 
-//            if (gamepad1.right_bumper && gamepad1.b) {
-//
-//                Billy.servoCapstoneRelease.setPosition(0);
-//            }
             // Values Not determined
             if (Math.abs(gamepad2.left_trigger) > 0) {
 
@@ -124,14 +121,44 @@ public class FullDrive_StickControl extends BasicTeleOp {
                 Billy.servoCapstoneRelease.setPosition(capstoneServoPosition);//
             }
 
+            if (gamepad2.dpad_up) {
+                Billy.moveJackTeleOp(setJackHeightPos, cons.JACK_POWER_LIMIT, "Raising Jack to the next level",this);
+
+                setJackHeightPos += 5;
+                setJackHeightPos = Range.clip(setJackHeightPos, 0, 30);
+            }
+
+            if (gamepad2.dpad_down) {
+
+                Billy.moveJackTeleOp(1, cons.JACK_POWER_LIMIT, "Lowering Jack to 1 Inch",this);
+            }
+
+            if (gamepad2.dpad_right) {
+
+                setJackHeightPos -= 5;
+                setJackHeightPos = Range.clip(setJackHeightPos, 0, 30);
+
+                Billy.moveJackTeleOp(setJackHeightPos, cons.JACK_POWER_LIMIT, "Raising Jack to the previous level",this);
+
+                setJackHeightPos += 5;
+                setJackHeightPos = Range.clip(setJackHeightPos, 0, 30);
+            }
+
+            Billy.moveJackInOpMode(this);
+
             Billy.angleUnWrap();
 
             telemetry.addData("Status", "Run Time: ",runtime.toString());
             telemetry.addData("Robot Heading", "( %.2f )", Billy.robotHeading);
+            telemetry.addData("Servos Gripper", "Servo Left (%.2f), Servo Right (%.2f)",
+                    Billy.stoneServoLeft.getPosition(), Billy.stoneServoRight.getPosition());
+            telemetry.addData("Drive Motor Pos", "FL (%d), FR (%d), BR (%d), BL (%d)",
+                    Billy.frontLeft.getCurrentPosition(), Billy.frontRight.getCurrentPosition(),
+                    Billy.backRight.getCurrentPosition(), Billy.backLeft.getCurrentPosition());
             telemetry.addData("Slide Pos", "Slide (%d)", Billy.slide.getCurrentPosition());
             telemetry.addData("Slide TargetPos", "Slide (%d)", Billy.slide.getTargetPosition());
             telemetry.addData("Slide Power", "Slide (%.2f)", Billy.slide.getPower());
-            telemetry.addData("Servos", "F Servo Left (%.2f), F Servo Right (%.2f)",
+            telemetry.addData("Servos Foundation", "F Servo Left (%.2f), F Servo Right (%.2f)",
                     Billy.servoFoundationL.getPosition(), Billy.servoFoundationR.getPosition());
             telemetry.addData("Commands Drive", "Forward (%.2f), Right (%.2f), Clockwise (%.2f)",
                     forwardDirection, rightDirection, clockwise);
